@@ -17,6 +17,8 @@
 #include <string.h>
 #include "../inih/ini.h"
 
+#define CONFIG_PATH "camflow.ini"
+
 #define bool  uint8_t
 #define true  1
 #define false 0
@@ -54,7 +56,16 @@ static int handler(void* user, const char* section, const char* name,
     return 1;
 }
 
-#define CONFIG_PATH "camflow.ini"
+void print_config(configuration* pconfig){
+  printf("Config loaded from '%s'\n", CONFIG_PATH);
+  printf("Provenance machine_id=%u\n", pconfig->machine_id);
+  printf("Provenance enabled=%u\n", pconfig->enabled);
+  printf("Provenance all=%u\n", pconfig->all);
+}
+
+void apply_config(configuration* pconfig){
+  printf("Applying configuration...\n");
+}
 
 int main(int argc, char* argv[])
 {
@@ -67,9 +78,8 @@ int main(int argc, char* argv[])
         printf("Can't load '%s'\n", CONFIG_PATH);
         return 1;
     }
-    printf("Config loaded from '%s'\n", CONFIG_PATH);
-    printf("Provenance machine_id=%u\n", config.machine_id);
-    printf("Provenance enabled=%u\n", config.enabled);
-    printf("Provenance all=%u\n", config.all);
+
+    print_config(&config);
+    apply_config(&config);
     return 0;
 }
