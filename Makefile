@@ -1,7 +1,4 @@
 all:
-	cd ./ifclib && $(MAKE) all
-	cd ./inih && $(MAKE) all
-	cd ./provenancelib && $(MAKE) all
 	cd ./src && $(MAKE) all
 
 clean:
@@ -14,6 +11,9 @@ prepare:
 	cd ./ifclib && $(MAKE) prepare
 	cd ./inih && $(MAKE) prepare
 	cd ./provenancelib && $(MAKE) prepare
+	cd ./ifclib && $(MAKE) all
+	cd ./inih && $(MAKE) all
+	cd ./provenancelib && $(MAKE) all
 
 install:
 	cd ./src && sudo $(MAKE) install
