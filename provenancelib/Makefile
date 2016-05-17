@@ -1,4 +1,4 @@
-GIT_SOURCE=https://github.com/CamFlow/camflow-audit-lib.git
+GIT_SOURCE=https://github.com/CamFlow/camflow-provenance-lib.git
 
 all:
 	cd ./build && $(MAKE) all
