@@ -15,13 +15,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../inih/ini.h"
+
+#include "ini.h"
+#include "provenancelib.h"
+#include "ifclib.h"
+#include "simplog.h"
 
 #define CONFIG_PATH "camflow.ini"
-
-#define bool  uint8_t
-#define true  1
-#define false 0
+#define	LOG_FILE "/tmp/camflow.clg"
 
 typedef struct{
   uint32_t machine_id;
@@ -57,25 +58,34 @@ static int handler(void* user, const char* section, const char* name,
 }
 
 void print_config(configuration* pconfig){
-  printf("Config loaded from '%s'\n", CONFIG_PATH);
-  printf("Provenance machine_id=%u\n", pconfig->machine_id);
-  printf("Provenance enabled=%u\n", pconfig->enabled);
-  printf("Provenance all=%u\n", pconfig->all);
+  simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
+  simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
+  simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
+  simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
 }
 
 void apply_config(configuration* pconfig){
-  printf("Applying configuration...\n");
+  simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
+}
+
+void _init_logs( void ){
+  simplog.setLogFile(LOG_FILE);
+  simplog.setLineWrap(false);
+  //simplog.setLogSilentMode(true);
+  //simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
 }
 
 int main(int argc, char* argv[])
 {
     configuration config;
 
+    _init_logs();
+
     // set everything to 0
     memset(&config, 0, sizeof(configuration));
 
     if (ini_parse(CONFIG_PATH, handler, &config) < 0) {
-        printf("Can't load '%s'\n", CONFIG_PATH);
+        simplog.writeLog(SIMPLOG_ERROR, "Can't load '%s'", CONFIG_PATH);
         return 1;
     }
 
