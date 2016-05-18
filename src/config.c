@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "ini.h"
 #include "provenancelib.h"
@@ -39,6 +40,8 @@ static int handler(void* user, const char* section, const char* name,
     #define TRUE(s) strcmp("true", s) == 0
     if (MATCH("provenance", "machine_id")) {
         pconfig->machine_id = atoi(value);
+        if(pconfig->machine_id==0)
+          pconfig->machine_id=gethostid();
     } else if (MATCH("provenance", "enabled")) {
         if(TRUE(value)){
           pconfig->enabled = true;
