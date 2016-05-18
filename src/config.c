@@ -40,8 +40,6 @@ static int handler(void* user, const char* section, const char* name,
     #define TRUE(s) strcmp("true", s) == 0
     if (MATCH("provenance", "machine_id")) {
         pconfig->machine_id = atoi(value);
-        if(pconfig->machine_id==0)
-          pconfig->machine_id=gethostid();
     } else if (MATCH("provenance", "enabled")) {
         if(TRUE(value)){
           pconfig->enabled = true;
@@ -68,7 +66,22 @@ void print_config(configuration* pconfig){
 }
 
 void apply_config(configuration* pconfig){
+  int err;
   simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
+  if(pconfig->machine_id==0)
+    pconfig->machine_id=gethostid();
+
+  // TODO set machine_id
+
+  if(err = provenance_set_enable(pconfig->enabled)){
+    simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
+    exit(-1);
+  }
+
+  if(err = provenance_set_all(pconfig->all)){
+    simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
+    exit(-1);
+  }
 }
 
 void _init_logs( void ){
@@ -92,7 +105,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    print_config(&config);
     apply_config(&config);
+    print_config(&config);
     return 0;
 }
