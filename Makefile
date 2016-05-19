@@ -20,3 +20,4 @@ prepare:
 
 install:
 	cd ./src && sudo $(MAKE) install
+	sudo cp --force ./camflow.ini /etc/camflow.ini 

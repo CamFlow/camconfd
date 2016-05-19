@@ -22,7 +22,7 @@
 #include "ifclib.h"
 #include "simplog.h"
 
-#define CONFIG_PATH "camflow.ini"
+#define CONFIG_PATH "/etc/camflow.ini"
 #define	LOG_FILE "/tmp/camflow.clg"
 
 typedef struct{
@@ -71,7 +71,10 @@ void apply_config(configuration* pconfig){
   if(pconfig->machine_id==0)
     pconfig->machine_id=gethostid();
 
-  // TODO set machine_id
+  if(err = provenance_set_machine_id(pconfig->machine_id)){
+    simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
+    exit(-1);
+  }
 
   if(err = provenance_set_enable(pconfig->enabled)){
     simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
