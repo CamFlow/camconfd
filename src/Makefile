@@ -12,6 +12,10 @@ debug:
 	$(CCC) $(INCLUDES) config.c $(LIB) -o config.o $(CCFLAGS) -g
 
 install:
+	cp --force ./config.o /usr/bin/camflow-config
+	mkdir -p /var/camflow
+	cp --force ./camflow-config.service /etc/systemd/system/camflow-config.service
+	systemctl enable camflow-config.service
 
 clean:
 	rm -f config.o

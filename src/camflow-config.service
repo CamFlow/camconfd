@@ -1,0 +1,11 @@
+[Unit]
+Description=CamFlow configuration service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/camflow-config
+Restart=on-abnormal
+
+[Install]
+WantedBy=multi-user.target
