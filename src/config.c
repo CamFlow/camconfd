@@ -23,7 +23,7 @@
 #include "simplog.h"
 
 #define CONFIG_PATH "/etc/camflow.ini"
-#define	LOG_FILE "/tmp/camflow.clg"
+#define	LOG_FILE "/var/camflow/camflow.clg"
 
 typedef struct{
   uint32_t machine_id;
@@ -90,8 +90,8 @@ void apply_config(configuration* pconfig){
 void _init_logs( void ){
   simplog.setLogFile(LOG_FILE);
   simplog.setLineWrap(false);
-  //simplog.setLogSilentMode(true);
-  //simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
+  simplog.setLogSilentMode(true);
+  simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
 }
 
 int main(int argc, char* argv[])
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
     if (ini_parse(CONFIG_PATH, handler, &config) < 0) {
         simplog.writeLog(SIMPLOG_ERROR, "Can't load '%s'", CONFIG_PATH);
-        return 1;
+        exit(-1);
     }
 
     apply_config(&config);
