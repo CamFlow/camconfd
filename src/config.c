@@ -24,11 +24,14 @@
 
 #define CONFIG_PATH "/etc/camflow.ini"
 #define	LOG_FILE "/var/camflow/camflow.clg"
+#define MAX_BRIDGE 32
 
 typedef struct{
   uint32_t machine_id;
   bool enabled;
   bool all;
+  char bridge[MAX_BRIDGE][PATH_MAX];
+  int nb_bridge;
 } configuration;
 
 static int handler(void* user, const char* section, const char* name,
@@ -38,7 +41,7 @@ static int handler(void* user, const char* section, const char* name,
 
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     #define TRUE(s) strcmp("true", s) == 0
-    if (MATCH("provenance", "machine_id")) {
+    if(MATCH("provenance", "machine_id")) {
         pconfig->machine_id = atoi(value);
     } else if (MATCH("provenance", "enabled")) {
         if(TRUE(value)){
@@ -46,12 +49,19 @@ static int handler(void* user, const char* section, const char* name,
         }else{
           pconfig->enabled = false;
         }
-    } else if (MATCH("provenance", "all")) {
+    } else if(MATCH("provenance", "all")) {
         if(TRUE(value)){
           pconfig->all = true;
         }else{
           pconfig->all = false;
         }
+    }else if(MATCH("ifc", "bridge")){
+      if(pconfig->nb_bridge+1 >= MAX_BRIDGE){
+        simplog.writeLog(SIMPLOG_ERROR, "Too many IFC bridges.");
+        exit(-1);
+      }
+      strncpy(pconfig->bridge[pconfig->nb_bridge], value, PATH_MAX);
+      pconfig->nb_bridge++;
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -59,14 +69,19 @@ static int handler(void* user, const char* section, const char* name,
 }
 
 void print_config(configuration* pconfig){
+  int i;
   simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
   simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
   simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
   simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
+
+  for(i = 0; i < pconfig->nb_bridge; i++){
+    simplog.writeLog(SIMPLOG_INFO, "IFC bridge=%s", pconfig->bridge[i]);
+  }
 }
 
 void apply_config(configuration* pconfig){
-  int err;
+  int err, i;
   simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
   if(pconfig->machine_id==0)
     pconfig->machine_id=gethostid();
@@ -85,12 +100,19 @@ void apply_config(configuration* pconfig){
     simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
     exit(-1);
   }
+
+  for(i = 0; i < pconfig->nb_bridge; i++){
+    if(err = ifc_add_bridge(pconfig->bridge[i])){
+      simplog.writeLog(SIMPLOG_ERROR, "Error adding IFC bridge %s %d", pconfig->bridge[i], err);
+      exit(-1);
+    }
+  }
 }
 
 void _init_logs( void ){
   simplog.setLogFile(LOG_FILE);
   simplog.setLineWrap(false);
-  simplog.setLogSilentMode(true);
+  //simplog.setLogSilentMode(true);
   simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
 }
 
