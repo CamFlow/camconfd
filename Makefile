@@ -1,4 +1,8 @@
 all:
+	cd ./ifclib && $(MAKE) all
+	cd ./inih && $(MAKE) all
+	cd ./provenancelib && $(MAKE) all
+	cd ./simplelogger && $(MAKE) all
 	cd ./src && $(MAKE) all
 
 clean:
@@ -13,11 +17,7 @@ prepare:
 	cd ./inih && $(MAKE) prepare
 	cd ./provenancelib && $(MAKE) prepare
 	cd ./simplelogger && $(MAKE) prepare
-	cd ./ifclib && $(MAKE) all
-	cd ./inih && $(MAKE) all
-	cd ./provenancelib && $(MAKE) all
-	cd ./simplelogger && $(MAKE) all
 
 install:
 	cd ./src && sudo $(MAKE) install
-	sudo cp --force ./camflow.ini /etc/camflow.ini 
+	sudo cp --force ./camflow.ini /etc/camflow.ini
