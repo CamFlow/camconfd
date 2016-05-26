@@ -70,13 +70,25 @@ static int handler(void* user, const char* section, const char* name,
 
 void print_config(configuration* pconfig){
   int i;
-  simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
-  simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
-  simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
-  simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
 
-  for(i = 0; i < pconfig->nb_bridge; i++){
-    simplog.writeLog(SIMPLOG_INFO, "IFC bridge=%s", pconfig->bridge[i]);
+  /*
+  * PRINT PROVENANCE CONFIGURATION
+  */
+  if(provenance_is_present()){
+    simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
+    simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
+    simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
+    simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
+  }
+
+  /*
+  * PRINT IFC CONFIGURATION
+  */
+
+  if(ifc_is_present()){
+    for(i = 0; i < pconfig->nb_bridge; i++){
+      simplog.writeLog(SIMPLOG_INFO, "IFC bridge=%s", pconfig->bridge[i]);
+    }
   }
 }
 
@@ -86,25 +98,37 @@ void apply_config(configuration* pconfig){
   if(pconfig->machine_id==0)
     pconfig->machine_id=gethostid();
 
-  if(err = provenance_set_machine_id(pconfig->machine_id)){
-    simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
-    exit(-1);
-  }
-
-  if(err = provenance_set_enable(pconfig->enabled)){
-    simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
-    exit(-1);
-  }
-
-  if(err = provenance_set_all(pconfig->all)){
-    simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
-    exit(-1);
-  }
-
-  for(i = 0; i < pconfig->nb_bridge; i++){
-    if(err = ifc_add_bridge(pconfig->bridge[i])){
-      simplog.writeLog(SIMPLOG_ERROR, "Error adding IFC bridge %s %d", pconfig->bridge[i], err);
+  /*
+  * APPLY PROVENANCE CONFIGURATION
+  */
+  if(provenance_is_present()){
+    simplog.writeLog(SIMPLOG_INFO, "Provenance module presence detected.");
+    if(err = provenance_set_machine_id(pconfig->machine_id)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
       exit(-1);
+    }
+
+    if(err = provenance_set_enable(pconfig->enabled)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_set_all(pconfig->all)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
+      exit(-1);
+    }
+  }
+
+  /*
+  * APPLY IFC CONFIGURATION
+  */
+  if(ifc_is_present()){
+    simplog.writeLog(SIMPLOG_INFO, "IFC module presence detected.");
+    for(i = 0; i < pconfig->nb_bridge; i++){
+      if(err = ifc_add_bridge(pconfig->bridge[i])){
+        simplog.writeLog(SIMPLOG_ERROR, "Error adding IFC bridge %s %d", pconfig->bridge[i], err);
+        exit(-1);
+      }
     }
   }
 }
