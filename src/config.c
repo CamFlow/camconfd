@@ -23,7 +23,7 @@
 #include "simplog.h"
 
 #define CONFIG_PATH "/etc/camflow.ini"
-#define	LOG_FILE "/var/camflow/camflow.clg"
+#define	LOG_FILE "/tmp/camflow.clg"
 #define MAX_BRIDGE 32
 
 typedef struct{
