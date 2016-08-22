@@ -22,9 +22,11 @@
 #include "ifclib.h"
 #include "simplog.h"
 
-#define CONFIG_PATH "/etc/camflow.ini"
-#define	LOG_FILE "/tmp/camflow.clg"
-#define MAX_BRIDGE 32
+#define CONFIG_PATH   "/etc/camflow.ini"
+#define	LOG_FILE      "/tmp/camflow.clg"
+#define MAX_BRIDGE    32
+#define MAX_OPAQUE    256
+#define MAX_TRACKED   256
 
 typedef struct{
   uint32_t machine_id;
@@ -32,6 +34,10 @@ typedef struct{
   bool all;
   char bridge[MAX_BRIDGE][PATH_MAX];
   int nb_bridge;
+  char opaque[MAX_OPAQUE][PATH_MAX];
+  int nb_opaque;
+  char tracked[MAX_TRACKED][PATH_MAX];
+  int nb_tracked;
 } configuration;
 
 static int handler(void* user, const char* section, const char* name,
@@ -55,6 +61,21 @@ static int handler(void* user, const char* section, const char* name,
         }else{
           pconfig->all = false;
         }
+    } else if(MATCH("provenance", "opaque")){
+      if(pconfig->nb_opaque+1 >= MAX_OPAQUE){
+        simplog.writeLog(SIMPLOG_ERROR, "Too many opaque files.");
+        exit(-1);
+      }
+      strncpy(pconfig->opaque[pconfig->nb_opaque], value, PATH_MAX);
+      pconfig->nb_opaque++;
+
+    } else if(MATCH("provenance", "tracked")){
+      if(pconfig->nb_tracked+1 >= MAX_TRACKED){
+        simplog.writeLog(SIMPLOG_ERROR, "Too many tracked files.");
+        exit(-1);
+      }
+      strncpy(pconfig->tracked[pconfig->nb_tracked], value, PATH_MAX);
+      pconfig->nb_tracked++;
     }else if(MATCH("ifc", "bridge")){
       if(pconfig->nb_bridge+1 >= MAX_BRIDGE){
         simplog.writeLog(SIMPLOG_ERROR, "Too many IFC bridges.");
@@ -79,6 +100,12 @@ void print_config(configuration* pconfig){
     simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
     simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
+    for(i = 0; i < pconfig->nb_opaque; i++){
+      simplog.writeLog(SIMPLOG_INFO, "Provenance opaque=%s", pconfig->opaque[i]);
+    }
+    for(i = 0; i < pconfig->nb_tracked; i++){
+      simplog.writeLog(SIMPLOG_INFO, "Provenance tracked=%s", pconfig->tracked[i]);
+    }
   }
 
   /*
@@ -116,6 +143,22 @@ void apply_config(configuration* pconfig){
     if(err = provenance_set_all(pconfig->all)){
       simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
       exit(-1);
+    }
+
+    for(i = 0; i < pconfig->nb_opaque; i++){
+      err = provenance_opaque_file(pconfig->opaque[i], true);
+      if(err < 0){
+        simplog.writeLog(SIMPLOG_ERROR, "Error making file opaque %s %d", pconfig->opaque[i], err);
+        exit(-1);
+      }
+    }
+
+    for(i = 0; i < pconfig->nb_tracked; i++){
+      err = provenance_track_file(pconfig->tracked[i], true, PROVENANCE_DEFAULT_PROPAGATE_DEPTH);
+      if(err < 0){
+        simplog.writeLog(SIMPLOG_ERROR, "Error making file tracked %s %d", pconfig->tracked[i], err);
+        exit(-1);
+      }
     }
   }
 

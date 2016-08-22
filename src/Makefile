@@ -1,7 +1,7 @@
-INCLUDES = -I../ifclib -I../inih -I../provenancelib -I../simplelogger
+INCLUDES = -I../inih -I../simplelogger
 CCFLAGS = -g -O2 -fpic
 CCC = gcc
-LIB = ../provenancelib/provenancelib.a ../ifclib/ifclib.a ../inih/inih.a ../simplelogger/simplog.a -lpthread
+LIB = /usr/local/lib/provenancelib.a /usr/local/lib/ifclib.a ../inih/inih.a ../simplelogger/simplog.a -lpthread -lz
 
 .SUFFIXES: .c
 
