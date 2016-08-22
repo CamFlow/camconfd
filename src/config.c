@@ -154,7 +154,7 @@ void apply_config(configuration* pconfig){
     }
 
     for(i = 0; i < pconfig->nb_tracked; i++){
-      err = provenance_track_file(pconfig->tracked[i], true, PROVENANCE_DEFAULT_PROPAGATE_DEPTH);
+      err = provenance_track_file(pconfig->tracked[i], true);
       if(err < 0){
         simplog.writeLog(SIMPLOG_ERROR, "Error making file tracked %s %d", pconfig->tracked[i], err);
         exit(-1);
