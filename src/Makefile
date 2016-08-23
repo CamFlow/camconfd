@@ -17,5 +17,8 @@ install:
 	cp --force ./camflow-config.service /etc/systemd/system/camflow-config.service
 	systemctl enable camflow-config.service
 
+restart:
+	systemctl restart camflow-config.service
+
 clean:
 	rm -f config.o
