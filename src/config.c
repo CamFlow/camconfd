@@ -87,9 +87,9 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     }  else if(MATCH("provenance", "relation_filter")){
       ADD_TO_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    }   else if(MATCH("provenance", "propage_node_filter")){
+    }   else if(MATCH("provenance", "propagate_node_filter")){
       ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    }  else if(MATCH("provenance", "propage_relation_filter")){
+    }  else if(MATCH("provenance", "propagate_relation_filter")){
       ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("ifc", "bridge")){
       ADD_TO_LIST(pconfig->bridge, pconfig->nb_bridge, MAX_BRIDGE, "Too many IFC bridges.");
