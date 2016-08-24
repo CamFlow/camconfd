@@ -29,6 +29,7 @@
 #define MAX_BRIDGE        32 // arbitrary
 #define MAX_OPAQUE        256 // arbitrary
 #define MAX_TRACKED       256 // arbitrary
+#define MAX_PROPAGATE     256 // arbitrary
 #define MAX_FILTER        32 // filters are 32bits long for now
 
 struct configuration{
@@ -41,6 +42,8 @@ struct configuration{
   int nb_opaque;
   char tracked[MAX_TRACKED][PATH_MAX];
   int nb_tracked;
+  char propagate[MAX_PROPAGATE][PATH_MAX];
+  int nb_propagate;
   char node_filter[MAX_FILTER][PATH_MAX];
   int nb_node_filter;
   char relation_filter[MAX_FILTER][PATH_MAX];
@@ -83,6 +86,8 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_OPAQUE, "Too many opaque files.");
     } else if(MATCH("provenance", "tracked")){
       ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_TRACKED, "Too many tracked files.");
+    } else if(MATCH("provenance", "propagate")){
+      ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_PROPAGATE, "Too many propagate files.");
     }  else if(MATCH("provenance", "node_filter")){
       ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     }  else if(MATCH("provenance", "relation_filter")){
@@ -116,6 +121,7 @@ void print_config(struct configuration* pconfig){
     simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
     LOG_LIST(pconfig->opaque, pconfig->nb_opaque, "Provenance opaque=");
     LOG_LIST(pconfig->tracked, pconfig->nb_tracked, "Provenance tracked=");
+    LOG_LIST(pconfig->propagate, pconfig->nb_propagate, "Provenance propagate=");
     LOG_LIST(pconfig->node_filter, pconfig->nb_node_filter, "Provenance node_filter=");
     LOG_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, "Provenance relation_filer=");
     LOG_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, "Provenance propagate_node_filter=");
@@ -166,7 +172,9 @@ void apply_config(struct configuration* pconfig){
 
     APPLY_LIST(pconfig->opaque, pconfig->nb_opaque, provenance_opaque_file(pconfig->opaque[i], true), "Error making file opaque");
 
-    APPLY_LIST(pconfig->tracked, pconfig->nb_tracked, provenance_opaque_file(pconfig->tracked[i], true), "Error making file tracked");
+    APPLY_LIST(pconfig->tracked, pconfig->nb_tracked, provenance_track_file(pconfig->tracked[i], true), "Error making file tracked");
+
+    APPLY_LIST(pconfig->propagate, pconfig->nb_propagate, provenance_propagate_file(pconfig->tracked[i], true), "Error making file tracked");
 
     APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_id(pconfig->node_filter[i])), "Error setting node filter");
 
