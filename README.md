@@ -11,7 +11,7 @@
 ### v0.1.2
 
 ```
-- 
+- Handle trusted files.
 ```
 
 ### v0.1.1
