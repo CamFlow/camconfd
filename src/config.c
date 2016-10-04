@@ -149,11 +149,11 @@ uint32_t get_machine_id(void){
   FILE *fptr;
   uint32_t machine_id;
 
-  fptr = fopen("scores.dat", "rb+");
+  fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "rb+");
   machine_id;
   if(fptr == NULL) //if file does not exist, create it
   {
-      fptr = fopen("scores.dat", "wb");
+      fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "wb");
       srand(time(NULL)+gethostid());
       machine_id = rand();
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
