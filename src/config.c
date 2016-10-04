@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "ini.h"
 #include "provenancelib.h"
@@ -143,6 +144,25 @@ void print_config(struct configuration* pconfig){
   }
 }
 
+#define CAMFLOW_MACHINE_ID_FILE "/etc/camflow-machine_id"
+uint32_t get_machine_id(void){
+  FILE *fptr;
+  uint32_t machine_id;
+
+  fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "rb+");
+  machine_id;
+  if(fptr == NULL) //if file does not exist, create it
+  {
+      fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "wb");
+      srand(time(NULL)+gethostid());
+      machine_id = rand();
+      fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
+  }else{
+    fread(&machine_id, sizeof(uint32_t), 1, fptr);
+  }
+  return machine_id;
+}
+
 #define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
                                                     err = function; \
                                                     if(err < 0){ \
@@ -153,8 +173,9 @@ void print_config(struct configuration* pconfig){
 void apply_config(struct configuration* pconfig){
   int err, i;
   simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
-  if(pconfig->machine_id==0)
-    pconfig->machine_id=gethostid();
+  if(pconfig->machine_id==0){
+    pconfig->machine_id=get_machine_id();
+  }
 
   /*
   * APPLY PROVENANCE CONFIGURATION
