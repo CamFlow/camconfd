@@ -10,9 +10,9 @@
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
 
-### v0.1.3
+### v0.1.4
 ```
-- 
+- Removed mmap_write from excluded propagate in default config.
 ```
 
 ### v0.1.3
