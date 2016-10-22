@@ -187,16 +187,6 @@ void apply_config(struct configuration* pconfig){
       exit(-1);
     }
 
-    if(err = provenance_set_enable(pconfig->enabled)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
-      exit(-1);
-    }
-
-    if(err = provenance_set_all(pconfig->all)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
-      exit(-1);
-    }
-
     APPLY_LIST(pconfig->opaque, pconfig->nb_opaque, provenance_opaque_file(pconfig->opaque[i], true), "Error making file opaque");
 
     APPLY_LIST(pconfig->tracked, pconfig->nb_tracked, provenance_track_file(pconfig->tracked[i], true), "Error making file tracked");
@@ -210,6 +200,16 @@ void apply_config(struct configuration* pconfig){
     APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_id(pconfig->propagate_node_filter[i])), "Error setting propagate node filter");
 
     APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_id(pconfig->propagate_relation_filter[i])), "Error setting propagate relation filrer");
+
+    if(err = provenance_set_enable(pconfig->enabled)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_set_all(pconfig->all)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
+      exit(-1);
+    }
   }
 
   /*
