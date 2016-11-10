@@ -32,7 +32,8 @@
 #define MAX_OPAQUE        256 // arbitrary
 #define MAX_TRACKED       256 // arbitrary
 #define MAX_PROPAGATE     256 // arbitrary
-#define MAX_FILTER        32 // filters are 32bits long for now
+#define MAX_FILTER        256 // filters are 32bits long for now
+#define MAX_IP_FILTER     256 // filters are 32bits long for now
 
 struct configuration{
   uint32_t machine_id;
@@ -56,6 +57,14 @@ struct configuration{
   int nb_propagate_node_filter;
   char propagate_relation_filter[MAX_FILTER][PATH_MAX];
   int nb_propagate_relation_filter;
+  char track_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_track_ipv4_ingress_filter;
+  char propagate_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_propagate_ipv4_ingress_filter;
+  char track_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_track_ipv4_egress_filter;
+  char propagate_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_propagate_ipv4_egress_filter;
 };
 
 #define ADD_TO_LIST(list, nb, max, error_msg) if(nb+1 >= max){ \
@@ -65,13 +74,14 @@ struct configuration{
                                               strncpy(list[nb], value, PATH_MAX); \
                                               nb++;
 
+#define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
+#define TRUE(s) (strcmp("true", s) == 0)
+
 static int handler(void* user, const char* section, const char* name,
                    const char* value)
 {
     struct configuration* pconfig = (struct configuration*)user;
-
-    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-    #define TRUE(s) strcmp("true", s) == 0
+    
     if(MATCH("provenance", "machine_id")) {
         pconfig->machine_id = atoi(value);
     } else if (MATCH("provenance", "enabled")) {
@@ -104,6 +114,14 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->bridge, pconfig->nb_bridge, MAX_BRIDGE, "Too many IFC bridges.");
     } else if(MATCH("ifc", "trusted")){
       ADD_TO_LIST(pconfig->trusted, pconfig->nb_trusted, MAX_TRUSTED, "Too many IFC trusted.");
+    } else if(MATCH("ipv4−ingress", "track")){
+      ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
+    } else if(MATCH("ipv4−ingress", "propagate")){
+      ADD_TO_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 propagate ingress.");
+    } else if(MATCH("ipv4−egress", "track")){
+      ADD_TO_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 track egress.");
+    } else if(MATCH("ipv4−egress", "propagate")){
+      ADD_TO_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 propagate egress.");
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -132,6 +150,10 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, "Provenance relation_filer=");
     LOG_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, "Provenance propagate_node_filter=");
     LOG_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, "Provenance propagate_relation_filer=");
+    LOG_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, "Provenance track_ipv4_ingress_filter=");
+    LOG_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, "Provenance propagate_ipv4_ingress_filter=");
+    LOG_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, "Provenance track_ipv4_egress_filter=");
+    LOG_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, "Provenance propagate_ipv4_egress_filter=");
   }
 
   /*
@@ -195,11 +217,19 @@ void apply_config(struct configuration* pconfig){
 
     APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_id(pconfig->node_filter[i])), "Error setting node filter");
 
-    APPLY_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, provenance_add_relation_filter(relation_id(pconfig->relation_filter[i])), "Error setting relation filrer");
+    APPLY_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, provenance_add_relation_filter(relation_id(pconfig->relation_filter[i])), "Error setting relation filter");
 
     APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_id(pconfig->propagate_node_filter[i])), "Error setting propagate node filter");
 
-    APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_id(pconfig->propagate_relation_filter[i])), "Error setting propagate relation filrer");
+    APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_id(pconfig->propagate_relation_filter[i])), "Error setting propagate relation filter");
+
+    APPLY_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, provenance_ingress_ipv4_track(pconfig->track_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 track filter");
+
+    APPLY_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, provenance_ingress_ipv4_propagate(pconfig->propagate_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 propagate filter");
+
+    APPLY_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, provenance_egress_ipv4_track(pconfig->track_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 track filter");
+
+    APPLY_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, provenance_egress_ipv4_propagate(pconfig->propagate_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 propagate filter");
 
     if(err = provenance_set_enable(pconfig->enabled)){
       simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
