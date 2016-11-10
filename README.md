@@ -33,12 +33,18 @@ bridge=/usr/local/bin/camflow-ifc-logger
 
 | Library version | Date       |
 | --------------- | ---------- |
+| 0.1.6           | N/A        |
 | 0.1.5           | 28/10/2016 |
 | 0.1.4           | 19/10/2016 |
 | 0.1.3           | 04/10/2016 |
 | 0.1.2           | 19/09/2016 |
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
+
+### v0.1.6
+```
+- Support IPv4 ingress and egress tracking.
+```
 
 ### v0.1.5
 ```
