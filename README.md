@@ -52,6 +52,7 @@ bridge=/usr/local/bin/camflow-ifc-logger
 
 ### v0.1.6
 ```
+- In configuration file "tracked" becomes "track"
 - Support IPv4 ingress and egress tracking.
 ```
 
