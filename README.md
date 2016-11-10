@@ -28,7 +28,7 @@ propagate_node_filter=inode_unknown
 ;propagate=0.0.0.0/0:80
 ;propagate=0.0.0.0/0:404
 
-[ ipv4−i n g r e s s ]
+[ipv4−ingress]
 ; track and propagate on any bind operation
 ;propagate = 0.0.0.0/0:0
 
