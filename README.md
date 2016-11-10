@@ -23,6 +23,15 @@ propagate_node_filter=directory
 propagate_node_filter=char
 propagate_node_filter=inode_unknown
 
+[ipv4−egress]
+; track and propagate on any connection operation on port 80 or 404
+;propagate=0.0.0.0/0:80
+;propagate=0.0.0.0/0:404
+
+[ ipv4−i n g r e s s ]
+; track and propagate on any bind operation
+;propagate = 0.0.0.0/0:0
+
 [ifc]
 bridge=/usr/local/bin/camflow-ifc-logger
 ;bridge=/your/own/bridge
