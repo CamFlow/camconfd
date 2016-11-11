@@ -23,6 +23,15 @@ propagate_node_filter=directory
 propagate_node_filter=char
 propagate_node_filter=inode_unknown
 
+[ipv4−egress]
+; track and propagate on any connection operation on port 80 or 404
+;propagate=0.0.0.0/0:80
+;propagate=0.0.0.0/0:404
+
+[ipv4−ingress]
+; track and propagate on any bind operation
+;propagate = 0.0.0.0/0:0
+
 [ifc]
 bridge=/usr/local/bin/camflow-ifc-logger
 ;bridge=/your/own/bridge
@@ -33,12 +42,19 @@ bridge=/usr/local/bin/camflow-ifc-logger
 
 | Library version | Date       |
 | --------------- | ---------- |
+| 0.1.6           | 11/11/2016 |
 | 0.1.5           | 28/10/2016 |
 | 0.1.4           | 19/10/2016 |
 | 0.1.3           | 04/10/2016 |
 | 0.1.2           | 19/09/2016 |
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
+
+### v0.1.6
+```
+- In configuration file "tracked" becomes "track"
+- Support IPv4 ingress and egress tracking.
+```
 
 ### v0.1.5
 ```
