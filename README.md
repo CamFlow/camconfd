@@ -53,7 +53,7 @@ bridge=/usr/local/bin/camflow-ifc-logger
 
 ### v0.1.7
 ```
-- Error now catch when not running as root.
+- Error now catched when not running as root.
 ```
 
 ### v0.1.6

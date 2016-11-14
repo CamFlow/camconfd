@@ -259,6 +259,7 @@ void apply_config(struct configuration* pconfig){
 void _init_logs( void ){
   simplog.setLogFile(LOG_FILE);
   simplog.setLineWrap(false);
+  simplog.setLogSilentMode(true);
   simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
 }
 
