@@ -176,6 +176,10 @@ uint32_t get_machine_id(void){
   if(fptr == NULL) //if file does not exist, create it
   {
       fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "wb");
+      if(fptr==NULL){
+        simplog.writeLog(SIMPLOG_ERROR, "Failed opening machine ID file.");
+        exit(-1);
+      }
       srand(time(NULL)+gethostid());
       machine_id = rand();
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
@@ -195,15 +199,15 @@ uint32_t get_machine_id(void){
 void apply_config(struct configuration* pconfig){
   int err, i;
   simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
-  if(pconfig->machine_id==0){
-    pconfig->machine_id=get_machine_id();
-  }
 
   /*
   * APPLY PROVENANCE CONFIGURATION
   */
   if(provenance_is_present()){
     simplog.writeLog(SIMPLOG_INFO, "Provenance module presence detected.");
+    if(pconfig->machine_id==0){
+      pconfig->machine_id=get_machine_id();
+    }
     if(err = provenance_set_machine_id(pconfig->machine_id)){
       simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
       exit(-1);
