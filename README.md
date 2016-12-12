@@ -54,7 +54,8 @@ bridge=/usr/local/bin/camflow-ifc-logger
 
 ### v0.1.8
 ```
--
+- Fix a warning relating to stored machine_id.
+- Go through even when config cannot be fully applied (errors in log file).
 ```
 
 ### v0.1.7

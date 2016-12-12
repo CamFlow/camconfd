@@ -170,6 +170,7 @@ void print_config(struct configuration* pconfig){
 uint32_t get_machine_id(void){
   FILE *fptr;
   uint32_t machine_id;
+  int rc;
 
   fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "rb+");
   machine_id;
@@ -184,7 +185,12 @@ uint32_t get_machine_id(void){
       machine_id = rand();
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
   }else{
-    fread(&machine_id, sizeof(uint32_t), 1, fptr);
+    rc = fread(&machine_id, sizeof(uint32_t), 1, fptr);
+    if(rc<0){
+      if(ferror(fptr)){
+        return rc;
+      }
+    }
   }
   return machine_id;
 }
