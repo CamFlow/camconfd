@@ -193,7 +193,6 @@ uint32_t get_machine_id(void){
                                                     err = function; \
                                                     if(err < 0){ \
                                                       simplog.writeLog(SIMPLOG_ERROR, "%s %s %d", error_msg, list[i], err); \
-                                                      exit(-1); \
                                                     } \
                                                   }
 void apply_config(struct configuration* pconfig){
