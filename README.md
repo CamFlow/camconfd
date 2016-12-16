@@ -31,18 +31,13 @@ propagate_node_filter=inode_unknown
 [ipv4−ingress]
 ; track and propagate on any bind operation
 ;propagate = 0.0.0.0/0:0
-
-[ifc]
-bridge=/usr/local/bin/camflow-ifc-logger
-;bridge=/your/own/bridge
-;trusted=/home/thomas/test/test
 ```
 
 ## Version
 
 | Library version | Date       |
 | --------------- | ---------- |
-| 0.1.8           | N/A        |
+| 0.2.0           | N/A        |
 | 0.1.7           | 05/12/2016 |
 | 0.1.6           | 11/11/2016 |
 | 0.1.5           | 28/10/2016 |
@@ -52,8 +47,9 @@ bridge=/usr/local/bin/camflow-ifc-logger
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
 
-### v0.1.8
+### v0.2.0
 ```
+- IFC support on hold.
 - Fix a warning relating to stored machine_id.
 - Go through even when config cannot be fully applied (errors in log file).
 ```

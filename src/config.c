@@ -22,7 +22,6 @@
 #include "provenancelib.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
-#include "ifclib.h"
 #include "simplog.h"
 
 #define CONFIG_PATH       "/etc/camflow.ini"
@@ -110,10 +109,6 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     }  else if(MATCH("provenance", "propagate_relation_filter")){
       ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    } else if(MATCH("ifc", "bridge")){
-      ADD_TO_LIST(pconfig->bridge, pconfig->nb_bridge, MAX_BRIDGE, "Too many IFC bridges.");
-    } else if(MATCH("ifc", "trusted")){
-      ADD_TO_LIST(pconfig->trusted, pconfig->nb_trusted, MAX_TRUSTED, "Too many IFC trusted.");
     } else if(MATCH("ipv4−ingress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
     } else if(MATCH("ipv4−ingress", "propagate")){
@@ -154,15 +149,6 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, "Provenance propagate_ipv4_ingress_filter=");
     LOG_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, "Provenance track_ipv4_egress_filter=");
     LOG_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, "Provenance propagate_ipv4_egress_filter=");
-  }
-
-  /*
-  * PRINT IFC CONFIGURATION
-  */
-
-  if(ifc_is_present()){
-    LOG_LIST(pconfig->bridge, pconfig->nb_bridge, "IFC bridge=");
-    LOG_LIST(pconfig->trusted, pconfig->nb_trusted, "IFC trusted=");
   }
 }
 
@@ -249,15 +235,6 @@ void apply_config(struct configuration* pconfig){
       simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
       exit(-1);
     }
-  }
-
-  /*
-  * APPLY IFC CONFIGURATION
-  */
-  if(ifc_is_present()){
-    simplog.writeLog(SIMPLOG_INFO, "IFC module presence detected.");
-    APPLY_LIST(pconfig->bridge, pconfig->nb_bridge, ifc_add_bridge(pconfig->bridge[i]), "Error adding IFC bridge");
-    APPLY_LIST(pconfig->trusted, pconfig->nb_trusted, ifc_file_mark_as_trusted(pconfig->trusted[i], NULL), "Error adding IFC trusted");
   }
 }
 
