@@ -22,7 +22,6 @@
 #include "provenancelib.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
-#include "ifclib.h"
 #include "simplog.h"
 
 #define CONFIG_PATH       "/etc/camflow.ini"
@@ -61,10 +60,14 @@ struct configuration{
   int nb_track_ipv4_ingress_filter;
   char propagate_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
   int nb_propagate_ipv4_ingress_filter;
+  char record_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_record_ipv4_ingress_filter;
   char track_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
   int nb_track_ipv4_egress_filter;
   char propagate_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
   int nb_propagate_ipv4_egress_filter;
+  char record_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
+  int nb_record_ipv4_egress_filter;
 };
 
 #define ADD_TO_LIST(list, nb, max, error_msg) if(nb+1 >= max){ \
@@ -110,18 +113,18 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     }  else if(MATCH("provenance", "propagate_relation_filter")){
       ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    } else if(MATCH("ifc", "bridge")){
-      ADD_TO_LIST(pconfig->bridge, pconfig->nb_bridge, MAX_BRIDGE, "Too many IFC bridges.");
-    } else if(MATCH("ifc", "trusted")){
-      ADD_TO_LIST(pconfig->trusted, pconfig->nb_trusted, MAX_TRUSTED, "Too many IFC trusted.");
     } else if(MATCH("ipv4−ingress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
     } else if(MATCH("ipv4−ingress", "propagate")){
       ADD_TO_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 propagate ingress.");
+    } else if(MATCH("ipv4−ingress", "record")){
+      ADD_TO_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 record ingress.");
     } else if(MATCH("ipv4−egress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 track egress.");
     } else if(MATCH("ipv4−egress", "propagate")){
       ADD_TO_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 propagate egress.");
+    } else if(MATCH("ipv4−egress", "record")){
+      ADD_TO_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 record egress.");
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -152,17 +155,10 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, "Provenance propagate_relation_filer=");
     LOG_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, "Provenance track_ipv4_ingress_filter=");
     LOG_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, "Provenance propagate_ipv4_ingress_filter=");
+    LOG_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, "Provenance record_ipv4_ingress_filter=");
     LOG_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, "Provenance track_ipv4_egress_filter=");
     LOG_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, "Provenance propagate_ipv4_egress_filter=");
-  }
-
-  /*
-  * PRINT IFC CONFIGURATION
-  */
-
-  if(ifc_is_present()){
-    LOG_LIST(pconfig->bridge, pconfig->nb_bridge, "IFC bridge=");
-    LOG_LIST(pconfig->trusted, pconfig->nb_trusted, "IFC trusted=");
+    LOG_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, "Provenance record_ipv4_egress_filter=");
   }
 }
 
@@ -170,6 +166,7 @@ void print_config(struct configuration* pconfig){
 uint32_t get_machine_id(void){
   FILE *fptr;
   uint32_t machine_id;
+  int rc;
 
   fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "rb+");
   machine_id;
@@ -184,7 +181,12 @@ uint32_t get_machine_id(void){
       machine_id = rand();
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
   }else{
-    fread(&machine_id, sizeof(uint32_t), 1, fptr);
+    rc = fread(&machine_id, sizeof(uint32_t), 1, fptr);
+    if(rc<0){
+      if(ferror(fptr)){
+        return rc;
+      }
+    }
   }
   return machine_id;
 }
@@ -193,7 +195,6 @@ uint32_t get_machine_id(void){
                                                     err = function; \
                                                     if(err < 0){ \
                                                       simplog.writeLog(SIMPLOG_ERROR, "%s %s %d", error_msg, list[i], err); \
-                                                      exit(-1); \
                                                     } \
                                                   }
 void apply_config(struct configuration* pconfig){
@@ -231,9 +232,13 @@ void apply_config(struct configuration* pconfig){
 
     APPLY_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, provenance_ingress_ipv4_propagate(pconfig->propagate_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 propagate filter");
 
+    APPLY_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, provenance_ingress_ipv4_record(pconfig->record_ipv4_ingress_filter[i]), "Error setting record ingress ipv4 record filter");
+
     APPLY_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, provenance_egress_ipv4_track(pconfig->track_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 track filter");
 
     APPLY_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, provenance_egress_ipv4_propagate(pconfig->propagate_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 propagate filter");
+
+    APPLY_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, provenance_egress_ipv4_record(pconfig->record_ipv4_egress_filter[i]), "Error setting record egress ipv4 record filter");
 
     if(err = provenance_set_enable(pconfig->enabled)){
       simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
@@ -244,15 +249,6 @@ void apply_config(struct configuration* pconfig){
       simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
       exit(-1);
     }
-  }
-
-  /*
-  * APPLY IFC CONFIGURATION
-  */
-  if(ifc_is_present()){
-    simplog.writeLog(SIMPLOG_INFO, "IFC module presence detected.");
-    APPLY_LIST(pconfig->bridge, pconfig->nb_bridge, ifc_add_bridge(pconfig->bridge[i]), "Error adding IFC bridge");
-    APPLY_LIST(pconfig->trusted, pconfig->nb_trusted, ifc_file_mark_as_trusted(pconfig->trusted[i], NULL), "Error adding IFC trusted");
   }
 }
 
