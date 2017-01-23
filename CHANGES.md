@@ -14,6 +14,7 @@
 
 ### v0.2.0
 ```
+- Deal with recording IP packet content.
 - IFC support on hold.
 - Fix a warning relating to stored machine_id.
 - Go through even when config cannot be fully applied (errors in log file).
