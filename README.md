@@ -1,5 +1,14 @@
 # camflow-config
 
+## Build Status
+
+| Branch | Status                                                                                  | SonarQube |
+|--------|-----------------------------------------------------------------------------------------|-----------|
+| master | [![Master Build Status](https://api.travis-ci.org/CamFlow/camflow-config.svg?branch=master)](https://travis-ci.org/CamFlow/camflow-config/branches)  |[![SonarQube Status](https://sonarqube.com//api/badges/gate?key=camflow%3Aconfig)]()   |
+| dev    | [![Dev Build Status](https://api.travis-ci.org/CamFlow/camflow-config.svg?branch=dev)](https://travis-ci.org/CamFlow/camflow-config/branches)      |[![SonarQube Status](https://sonarqube.com//api/badges/gate?key=camflow%3Aconfig%3Adev)](https://sonarqube.com/dashboard?id=camflow%3Aconfig%3Adev)   |
+
+## Instruction
+
 The CamFlow kernel configuration can be found at `/etc/camflow.ini`. Follow an example configuration:
 
 ```
