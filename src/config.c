@@ -36,6 +36,7 @@
 
 struct configuration{
   uint32_t machine_id;
+  uint32_t boot_id;
   bool enabled;
   bool all;
   char bridge[MAX_BRIDGE][PATH_MAX];
@@ -144,6 +145,7 @@ void print_config(struct configuration* pconfig){
   if(provenance_is_present()){
     simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
     simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
+    simplog.writeLog(SIMPLOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
     LOG_LIST(pconfig->opaque, pconfig->nb_opaque, "Provenance opaque=");
@@ -169,11 +171,10 @@ uint32_t get_machine_id(void){
   int rc;
 
   fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "rb+");
-  machine_id;
-  if(fptr == NULL) //if file does not exist, create it
+  if(!fptr) //if file does not exist, create it
   {
       fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "wb");
-      if(fptr==NULL){
+      if(!fptr){
         simplog.writeLog(SIMPLOG_ERROR, "Failed opening machine ID file.");
         exit(-1);
       }
@@ -182,13 +183,40 @@ uint32_t get_machine_id(void){
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
   }else{
     rc = fread(&machine_id, sizeof(uint32_t), 1, fptr);
-    if(rc<0){
-      if(ferror(fptr)){
+    if(rc<0 && ferror(fptr))
         return rc;
-      }
-    }
   }
+  if(fptr)
+    fclose(fptr);
   return machine_id;
+}
+
+#define CAMFLOW_BOOT_ID_FILE "/etc/camflow-boot_id"
+uint32_t get_boot_id(void){
+  FILE *fptr;
+  uint32_t boot_id=0;
+  int rc;
+
+  fptr = fopen(CAMFLOW_BOOT_ID_FILE, "rb+");
+  if(!fptr) //if file does not exist, create it
+  {
+      fptr = fopen(CAMFLOW_BOOT_ID_FILE, "wb");
+      if(!fptr){
+        simplog.writeLog(SIMPLOG_ERROR, "Failed opening machine ID file.");
+        exit(-1);
+      }
+      fwrite(&boot_id, sizeof(uint32_t), 1, fptr);
+  }else{
+    rc = fread(&boot_id, sizeof(uint32_t), 1, fptr);
+    if(rc<0 && ferror(fptr))
+        return rc;
+    boot_id+=1;
+    fseek(fptr, 0, SEEK_SET);
+    fwrite(&boot_id, sizeof(uint32_t), 1, fptr);
+  }
+  if(fptr)
+    fclose(fptr);
+  return boot_id;
 }
 
 #define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
@@ -211,6 +239,11 @@ void apply_config(struct configuration* pconfig){
     }
     if(err = provenance_set_machine_id(pconfig->machine_id)){
       simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
+      exit(-1);
+    }
+    pconfig->boot_id=get_boot_id();
+    if(err = provenance_set_boot_id(pconfig->boot_id)){
+      simplog.writeLog(SIMPLOG_ERROR, "Error setting boot ID %d", err);
       exit(-1);
     }
 
