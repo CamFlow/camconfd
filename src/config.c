@@ -89,30 +89,28 @@ static int handler(void* user, const char* section, const char* name,
     if(MATCH("provenance", "machine_id")) {
         pconfig->machine_id = atoi(value);
     } else if (MATCH("provenance", "enabled")) {
-        if(TRUE(value)){
+        if(TRUE(value))
           pconfig->enabled = true;
-        }else{
+        else
           pconfig->enabled = false;
-        }
     } else if(MATCH("provenance", "all")) {
-        if(TRUE(value)){
+        if(TRUE(value))
           pconfig->all = true;
-        }else{
+        else
           pconfig->all = false;
-        }
     } else if(MATCH("provenance", "opaque")){
       ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_OPAQUE, "Too many opaque files.");
     } else if(MATCH("provenance", "track")){
       ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_TRACKED, "Too many tracked files.");
     } else if(MATCH("provenance", "propagate")){
       ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_PROPAGATE, "Too many propagate files.");
-    }  else if(MATCH("provenance", "node_filter")){
+    } else if(MATCH("provenance", "node_filter")){
       ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    }  else if(MATCH("provenance", "relation_filter")){
+    } else if(MATCH("provenance", "relation_filter")){
       ADD_TO_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    }   else if(MATCH("provenance", "propagate_node_filter")){
+    } else if(MATCH("provenance", "propagate_node_filter")){
       ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    }  else if(MATCH("provenance", "propagate_relation_filter")){
+    } else if(MATCH("provenance", "propagate_relation_filter")){
       ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("ipv4−ingress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
@@ -234,9 +232,8 @@ void apply_config(struct configuration* pconfig){
   */
   if(provenance_is_present()){
     simplog.writeLog(SIMPLOG_INFO, "Provenance module presence detected.");
-    if(pconfig->machine_id==0){
+    if(pconfig->machine_id==0)
       pconfig->machine_id=get_machine_id();
-    }
     if(err = provenance_set_machine_id(pconfig->machine_id)){
       simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
       exit(-1);
