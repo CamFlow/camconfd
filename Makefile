@@ -1,3 +1,5 @@
+version=0.3.1
+
 all:
 	cd ./src && $(MAKE) all
 
@@ -16,3 +18,13 @@ install:
 
 restart:
 	cd ./src && sudo $(MAKE) restart
+
+rpm:
+	mkdir -p ~/rpmbuild/{RPMS,SRPMS,BUILD,SOURCES,SPECS,tmp}
+	cp -f ./camflow-config.spec ~/rpmbuild/SPECS/camflow-config.spec
+	rpmbuild -bb camflow-config.spec
+	mkdir -p output
+	cp ~/rpmbuild/RPMS/x86_64/* ./output
+
+publish:
+	cd ./output && package_cloud push camflow/provenance/fedora/25 camflow-config-$(version)-1.x86_64.rpm
