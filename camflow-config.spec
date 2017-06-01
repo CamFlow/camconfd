@@ -17,7 +17,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/systemd/system
 mkdir -p $RPM_BUILD_ROOT/var/camflow
 cd $RPM_BUILD_ROOT
 cp -f %{SOURCEURL0}/src/config.o ./usr/bin/camflow-config
-cp -f %{SOURCEURL0}/src/config.o ./etc/systemd/system/camflow-config.service
+cp -f %{SOURCEURL0}/src/camflow-config.service ./etc/systemd/system/camflow-config.service
 cp -f %{SOURCEURL0}/camflow.ini ./etc/camflow.ini
 %clean
 rm -r -f "$RPM_BUILD_ROOT"
