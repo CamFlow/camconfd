@@ -17,7 +17,7 @@
 
 ### v0.3.1
 ```
-- 
+- Fail if the configuration contains an error.
 ```
 
 ### v0.3.0
