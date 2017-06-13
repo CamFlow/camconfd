@@ -218,9 +218,10 @@ uint32_t get_boot_id(void){
 }
 
 #define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
-                                                    err = function; \
+                                                    int err = function; \
                                                     if(err < 0){ \
-                                                      simplog.writeLog(SIMPLOG_ERROR, "%s %s %d", error_msg, list[i], err); \
+                                                      simplog.writeLog(SIMPLOG_INFO, "%s %s %d", error_msg, list[i], err); \
+                                                      exit(-1);\
                                                     } \
                                                   }
 void apply_config(struct configuration* pconfig){
