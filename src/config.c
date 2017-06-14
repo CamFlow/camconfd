@@ -224,16 +224,6 @@ uint32_t get_boot_id(void){
                                                       exit(-1);\
                                                     } \
                                                   }
-#define run_cmd(fmt, ...) do{\
-  sprintf(buffer, fmt,  ##__VA_ARGS__);\
-  simplog.writeLog(SIMPLOG_INFO, buffer);\
-  err = system(buffer);\
-  if(err==-1 || WEXITSTATUS(err)==127){\
-    simplog.writeLog(SIMPLOG_INFO, "Command failed");\
-    exit(-1);\
-  }\
-}while(0);
-
 
 void apply_config(struct configuration* pconfig){
   int err, i;
