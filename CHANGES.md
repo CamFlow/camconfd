@@ -17,6 +17,7 @@
 
 ### v0.3.1
 ```
+- Fix a bug occcuring on propagate (File does not exist when it does).
 - Fail if the configuration contains an error.
 ```
 
