@@ -220,7 +220,7 @@ uint32_t get_boot_id(void){
 #define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
                                                     int err = function; \
                                                     if(err < 0){ \
-                                                      syslog(LOG_INFO, "%s %s %d", error_msg, list[i], err); \
+                                                      syslog(LOG_ERR, "%s %s %d", error_msg, list[i], err); \
                                                       exit(-1);\
                                                     } \
                                                   }
