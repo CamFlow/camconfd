@@ -226,8 +226,8 @@ uint32_t get_boot_id(void){
                                                   }
 
 void apply_config(struct configuration* pconfig){
-  int err, i;
-  char buffer[PATH_MAX];
+  int err;
+  int i;
   syslog(LOG_INFO, "Applying configuration...");
 
   /*
@@ -292,7 +292,7 @@ void _init_logs( void ){
   openlog(APP_NAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_DAEMON);
 }
 
-int main(int argc, char* argv[])
+int main( void )
 {
     struct configuration config;
 
