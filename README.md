@@ -45,4 +45,4 @@ propagate_node_filter=inode_unknown
 ;propagate = 0.0.0.0/0:0
 ```
 
-To check the loaded configuration at boot time use `journalctl -u camconfd.service`
+To check the loaded configuration use `journalctl -u camconfd.service`
