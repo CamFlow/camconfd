@@ -1,7 +1,7 @@
-INCLUDES = -I../inih -I../simplelogger
+INCLUDES = -I../inih
 CCFLAGS = -g -O2 -fpic
 CCC = gcc
-LIB = /usr/local/lib/provenancelib.a ../inih/inih.a ../simplelogger/simplog.a -lpthread -lz
+LIB = /usr/local/lib/provenancelib.a ../inih/inih.a -lpthread -lz
 
 .SUFFIXES: .c
 
@@ -12,13 +12,13 @@ debug:
 	$(CCC) $(INCLUDES) config.c $(LIB) -o config.o $(CCFLAGS) -g
 
 install:
-	cp --force ./config.o /usr/bin/camconfigd
+	cp --force ./config.o /usr/bin/camconfd
 	mkdir -p /var/camflow
-	cp --force ./camconfigd.service /etc/systemd/system/camconfigd.service
-	systemctl enable camconfigd.service
+	cp --force ./camconfd.service /etc/systemd/system/camconfd.service
+	systemctl enable camconfd.service
 
 restart:
-	systemctl restart camconfigd.service
+	systemctl restart camconfd.service
 
 clean:
 	rm -f config.o

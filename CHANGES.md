@@ -17,7 +17,9 @@
 
 ### v0.3.1
 ```
-- Fix a bug occcuring on propagate (File does not exist when it does).
+- Renamed camconfd.
+- Use syslog instead of custom logging mechanism.
+- Fix a bug that occurs on propagate (File does not exist when it does).
 - Fail if the configuration contains an error.
 ```
 
