@@ -2,7 +2,7 @@
 
 | Library version | Date       |
 | --------------- | ---------- |
-| 0.3.1           | N/A        |
+| 0.3.1           | 23/06/2017 |
 | 0.3.0           | 15/04/2017 |
 | 0.2.1           | 09/03/2017 |
 | 0.2.0           | 23/01/2017 |
@@ -21,11 +21,6 @@
 - Use syslog instead of custom logging mechanism.
 - Fix a bug that occurs on propagate (File does not exist when it does).
 - Fail if the configuration contains an error.
-```
-
-### v0.3.0
-```
-- Add support for boot id.
 ```
 
 ### v0.2.1
