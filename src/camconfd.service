@@ -4,7 +4,7 @@ Description=CamFlow configuration service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/camflow-config
+ExecStart=/usr/bin/camconfd
 
 [Install]
 WantedBy=multi-user.target

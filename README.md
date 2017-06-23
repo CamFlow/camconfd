@@ -44,3 +44,5 @@ propagate_node_filter=inode_unknown
 ; track and propagate on any bind operation
 ;propagate = 0.0.0.0/0:0
 ```
+
+To check the loaded configuration use `journalctl -b | grep camconfd`

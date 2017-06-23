@@ -17,15 +17,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <syslog.h>
 
 #include "ini.h"
 #include "provenancelib.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
-#include "simplog.h"
 
 #define CONFIG_PATH       "/etc/camflow.ini"
-#define	LOG_FILE          "/tmp/camflow.clg"
+#define APP_NAME          "camconfd"
 #define MAX_BRIDGE        32 // arbitrary
 #define MAX_TRUSTED       256 // arbitrary
 #define MAX_OPAQUE        256 // arbitrary
@@ -72,7 +72,7 @@ struct configuration{
 };
 
 #define ADD_TO_LIST(list, nb, max, error_msg) if(nb+1 >= max){ \
-                                                simplog.writeLog(SIMPLOG_ERROR, error_msg); \
+                                                syslog(LOG_ERR, error_msg); \
                                                 exit(-1); \
                                               } \
                                               strncpy(list[nb], value, PATH_MAX); \
@@ -131,7 +131,7 @@ static int handler(void* user, const char* section, const char* name,
 }
 
 #define LOG_LIST(list, nb, msg) for(i = 0; i < nb; i++){ \
-                                    simplog.writeLog(SIMPLOG_INFO, "%s=%s", msg, list[i]); \
+                                    syslog(LOG_INFO, "%s=%s", msg, list[i]); \
                                   }
 
 void print_config(struct configuration* pconfig){
@@ -141,11 +141,11 @@ void print_config(struct configuration* pconfig){
   * PRINT PROVENANCE CONFIGURATION
   */
   if(provenance_is_present()){
-    simplog.writeLog(SIMPLOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
-    simplog.writeLog(SIMPLOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
-    simplog.writeLog(SIMPLOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
-    simplog.writeLog(SIMPLOG_INFO, "Provenance enabled=%u", pconfig->enabled);
-    simplog.writeLog(SIMPLOG_INFO, "Provenance all=%u", pconfig->all);
+    syslog(LOG_INFO, "Config loaded from '%s'", CONFIG_PATH);
+    syslog(LOG_INFO, "Provenance machine_id=%u", pconfig->machine_id);
+    syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
+    syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
+    syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
     LOG_LIST(pconfig->opaque, pconfig->nb_opaque, "Provenance opaque=");
     LOG_LIST(pconfig->tracked, pconfig->nb_tracked, "Provenance track=");
     LOG_LIST(pconfig->propagate, pconfig->nb_propagate, "Provenance propagate=");
@@ -173,7 +173,7 @@ uint32_t get_machine_id(void){
   {
       fptr = fopen(CAMFLOW_MACHINE_ID_FILE, "wb");
       if(!fptr){
-        simplog.writeLog(SIMPLOG_ERROR, "Failed opening machine ID file.");
+        syslog(LOG_ERR, "Failed opening machine ID file.");
         exit(-1);
       }
       srand(time(NULL)+gethostid());
@@ -200,7 +200,7 @@ uint32_t get_boot_id(void){
   {
       fptr = fopen(CAMFLOW_BOOT_ID_FILE, "wb");
       if(!fptr){
-        simplog.writeLog(SIMPLOG_ERROR, "Failed opening machine ID file.");
+        syslog(LOG_ERR, "Failed opening machine ID file.");
         exit(-1);
       }
       fwrite(&boot_id, sizeof(uint32_t), 1, fptr);
@@ -218,29 +218,32 @@ uint32_t get_boot_id(void){
 }
 
 #define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
-                                                    err = function; \
+                                                    int err = function; \
                                                     if(err < 0){ \
-                                                      simplog.writeLog(SIMPLOG_ERROR, "%s %s %d", error_msg, list[i], err); \
+                                                      syslog(LOG_ERR, "%s %s %d", error_msg, list[i], err); \
+                                                      exit(-1);\
                                                     } \
                                                   }
+
 void apply_config(struct configuration* pconfig){
-  int err, i;
-  simplog.writeLog(SIMPLOG_INFO, "Applying configuration...");
+  int err;
+  int i;
+  syslog(LOG_INFO, "Applying configuration...");
 
   /*
   * APPLY PROVENANCE CONFIGURATION
   */
   if(provenance_is_present()){
-    simplog.writeLog(SIMPLOG_INFO, "Provenance module presence detected.");
+    syslog(LOG_INFO, "Provenance module presence detected.");
     if(pconfig->machine_id==0)
       pconfig->machine_id=get_machine_id();
     if(err = provenance_set_machine_id(pconfig->machine_id)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error setting machine ID %d", err);
+      syslog(LOG_ERR, "Error setting machine ID %d", err);
       exit(-1);
     }
     pconfig->boot_id=get_boot_id();
     if(err = provenance_set_boot_id(pconfig->boot_id)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error setting boot ID %d", err);
+      syslog(LOG_ERR, "Error setting boot ID %d", err);
       exit(-1);
     }
 
@@ -248,7 +251,7 @@ void apply_config(struct configuration* pconfig){
 
     APPLY_LIST(pconfig->tracked, pconfig->nb_tracked, provenance_track_file(pconfig->tracked[i], true), "Error making file tracked");
 
-    APPLY_LIST(pconfig->propagate, pconfig->nb_propagate, provenance_propagate_file(pconfig->tracked[i], true), "Error making file propagate");
+    APPLY_LIST(pconfig->propagate, pconfig->nb_propagate, provenance_propagate_file(pconfig->propagate[i], true), "Error making file propagate");
 
     APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_id(pconfig->node_filter[i])), "Error setting node filter");
 
@@ -271,25 +274,25 @@ void apply_config(struct configuration* pconfig){
     APPLY_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, provenance_egress_ipv4_record(pconfig->record_ipv4_egress_filter[i]), "Error setting record egress ipv4 record filter");
 
     if(err = provenance_set_enable(pconfig->enabled)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error enabling provenance %d", err);
+      syslog(LOG_ERR, "Error enabling provenance %d", err);
       exit(-1);
     }
 
     if(err = provenance_set_all(pconfig->all)){
-      simplog.writeLog(SIMPLOG_ERROR, "Error with all provenance %d", err);
+      syslog(LOG_ERR, "Error with all provenance %d", err);
       exit(-1);
     }
+  } else {
+    syslog(LOG_ERR, "CamFlow is not running in the kernel.");
   }
 }
 
 void _init_logs( void ){
-  simplog.setLogFile(LOG_FILE);
-  simplog.setLineWrap(false);
-  simplog.setLogSilentMode(true);
-  simplog.setLogDebugLevel(SIMPLOG_VERBOSE);
+  setlogmask(LOG_UPTO(LOG_INFO));
+  openlog(APP_NAME, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_DAEMON);
 }
 
-int main(int argc, char* argv[])
+int main( void )
 {
     struct configuration config;
 
@@ -299,7 +302,7 @@ int main(int argc, char* argv[])
     memset(&config, 0, sizeof(struct configuration));
 
     if (ini_parse(CONFIG_PATH, handler, &config) < 0) {
-        simplog.writeLog(SIMPLOG_ERROR, "Can't load '%s'", CONFIG_PATH);
+        syslog(LOG_ERR, "Can't load '%s'", CONFIG_PATH);
         exit(-1);
     }
 
