@@ -20,7 +20,7 @@
 #include <syslog.h>
 
 #include "ini.h"
-#include "provenancelib.h"
+#include "provenance.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
 
