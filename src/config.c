@@ -20,7 +20,7 @@
 #include <syslog.h>
 
 #include "ini.h"
-#include "provenancelib.h"
+#include "provenance.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
 
@@ -33,6 +33,7 @@
 #define MAX_PROPAGATE     256 // arbitrary
 #define MAX_FILTER        256 // filters are 32bits long for now
 #define MAX_IP_FILTER     256 // filters are 32bits long for now
+#define MAX_NAME          256
 
 struct configuration{
   uint32_t machine_id;
@@ -57,6 +58,14 @@ struct configuration{
   int nb_propagate_node_filter;
   char propagate_relation_filter[MAX_FILTER][PATH_MAX];
   int nb_propagate_relation_filter;
+  char track_user_filter[MAX_FILTER][MAX_NAME];
+  int nb_track_user_filter;
+  char propagate_user_filter[MAX_FILTER][MAX_NAME];
+  int nb_propagate_user_filter;
+  char track_group_filter[MAX_FILTER][MAX_NAME];
+  int nb_track_group_filter;
+  char propagate_group_filter[MAX_FILTER][MAX_NAME];
+  int nb_propagate_group_filter;
   char track_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
   int nb_track_ipv4_ingress_filter;
   char propagate_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
@@ -112,6 +121,14 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("provenance", "propagate_relation_filter")){
       ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+    } else if(MATCH("user", "track")){
+      ADD_TO_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+    } else if(MATCH("user", "propagate")){
+      ADD_TO_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+    } else if(MATCH("group", "track")){
+      ADD_TO_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+    } else if(MATCH("group", "propagate")){
+      ADD_TO_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("ipv4−ingress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
     } else if(MATCH("ipv4−ingress", "propagate")){
@@ -153,6 +170,10 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, "Provenance relation_filer=");
     LOG_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, "Provenance propagate_node_filter=");
     LOG_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, "Provenance propagate_relation_filer=");
+    LOG_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, "Provenance track_user_filer=");
+    LOG_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, "Provenance propagate_user_filer=");
+    LOG_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, "Provenance track_group_filer=");
+    LOG_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, "Provenance propagate_group_filer=");
     LOG_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, "Provenance track_ipv4_ingress_filter=");
     LOG_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, "Provenance propagate_ipv4_ingress_filter=");
     LOG_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, "Provenance record_ipv4_ingress_filter=");
@@ -260,6 +281,14 @@ void apply_config(struct configuration* pconfig){
     APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_id(pconfig->propagate_node_filter[i])), "Error setting propagate node filter");
 
     APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_id(pconfig->propagate_relation_filter[i])), "Error setting propagate relation filter");
+
+    APPLY_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, provenance_user_track(pconfig->track_user_filter[i]), "Error setting track user filter");
+
+    APPLY_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, provenance_user_propagate(pconfig->propagate_user_filter[i]), "Error setting propagate user filter");
+
+    APPLY_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, provenance_group_track(pconfig->track_group_filter[i]), "Error setting track group filter");
+
+    APPLY_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, provenance_group_propagate(pconfig->propagate_group_filter[i]), "Error setting propagate group filter");
 
     APPLY_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, provenance_ingress_ipv4_track(pconfig->track_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 track filter");
 
