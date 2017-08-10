@@ -274,13 +274,13 @@ void apply_config(struct configuration* pconfig){
 
     APPLY_LIST(pconfig->propagate, pconfig->nb_propagate, provenance_propagate_file(pconfig->propagate[i], true), "Error making file propagate");
 
-    APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_id(pconfig->node_filter[i])), "Error setting node filter");
+    APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_str_to_id(pconfig->node_filter[i], 256)), "Error setting node filter");
 
-    APPLY_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, provenance_add_relation_filter(relation_id(pconfig->relation_filter[i])), "Error setting relation filter");
+    APPLY_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, provenance_add_relation_filter(relation_str_to_id(pconfig->relation_filter[i], 256)), "Error setting relation filter");
 
-    APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_id(pconfig->propagate_node_filter[i])), "Error setting propagate node filter");
+    APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_str_to_id(pconfig->propagate_node_filter[i], 256)), "Error setting propagate node filter");
 
-    APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_id(pconfig->propagate_relation_filter[i])), "Error setting propagate relation filter");
+    APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_str_to_id(pconfig->propagate_relation_filter[i], 256)), "Error setting propagate relation filter");
 
     APPLY_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, provenance_user_track(pconfig->track_user_filter[i]), "Error setting track user filter");
 
