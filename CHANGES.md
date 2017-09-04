@@ -20,7 +20,7 @@
 
 ### v0.3.4
 ```
-- 
+- Use libprovenance as a shared library.
 ```
 
 ### v0.3.3
