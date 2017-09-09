@@ -40,6 +40,7 @@ struct configuration{
   uint32_t boot_id;
   bool enabled;
   bool all;
+  bool compress;
   char bridge[MAX_BRIDGE][PATH_MAX];
   int nb_bridge;
   char trusted[MAX_BRIDGE][PATH_MAX];
@@ -107,11 +108,16 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->all = true;
         else
           pconfig->all = false;
-    } else if(MATCH("provenance", "opaque")){
+    } else if(MATCH("provenance", "compress")) {
+        if(TRUE(value))
+          pconfig->compress = true;
+        else
+          pconfig->compress = false;
+    } else if(MATCH("file", "opaque")){
       ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_OPAQUE, "Too many opaque files.");
-    } else if(MATCH("provenance", "track")){
+    } else if(MATCH("file", "track")){
       ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_TRACKED, "Too many tracked files.");
-    } else if(MATCH("provenance", "propagate")){
+    } else if(MATCH("file", "propagate")){
       ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_PROPAGATE, "Too many propagate files.");
     } else if(MATCH("provenance", "node_filter")){
       ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
@@ -163,6 +169,7 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
+    syslog(LOG_INFO, "Provenance compress=%u", pconfig->compress);
     LOG_LIST(pconfig->opaque, pconfig->nb_opaque, "Provenance opaque=");
     LOG_LIST(pconfig->tracked, pconfig->nb_tracked, "Provenance track=");
     LOG_LIST(pconfig->propagate, pconfig->nb_propagate, "Provenance propagate=");
@@ -309,6 +316,11 @@ void apply_config(struct configuration* pconfig){
 
     if(err = provenance_set_all(pconfig->all)){
       syslog(LOG_ERR, "Error with all provenance %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_should_compress(pconfig->compress)){
+      syslog(LOG_ERR, "Error with compress %d", err);
       exit(-1);
     }
   } else {

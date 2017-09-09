@@ -20,6 +20,8 @@
 
 ### v0.3.4
 ```
+- Put file related option in their own category in the ini file.
+- Add node compression option.
 - Use libprovenance as a shared library.
 ```
 
