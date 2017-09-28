@@ -1,7 +1,7 @@
 INCLUDES = -I../inih
 CCFLAGS = -g -O2 -fpic
 CCC = gcc
-LIB = /usr/local/lib/libprovenance.a ../inih/inih.a -lpthread -lz
+LIB = -lprovenance ../inih/inih.a -lpthread -lz
 
 .SUFFIXES: .c
 

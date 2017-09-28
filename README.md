@@ -22,27 +22,35 @@ machine_id=0
 enabled=true
 ;record provenance of all kernel object
 all=false
-;set opaque file
-opaque=/usr/bin/bash
-;set tracked file
-;tracked=/home/thomas/test.o
-;propagate=/home/thomas/test.o
+; enable node compression
+compress=true
 node_filter=directory
 node_filter=inode_unknown
 node_filter=char
-;relation_filter=mmap_write
+relation_filter=sh_read
+relation_filter=sh_write
 propagate_node_filter=directory
 propagate_node_filter=char
 propagate_node_filter=inode_unknown
 
+[file]
+;set opaque file
+opaque=/usr/bin/bash
+;set tracked file
+;track=/home/thomas/test.o
+;propagate=/home/thomas/test.o
+
 [ipv4−egress]
-; track and propagate on any connection operation on port 80 or 404
 ;propagate=0.0.0.0/0:80
 ;propagate=0.0.0.0/0:404
+;record exchanged with local server
+;record=127.0.0.1/32:80
 
-[ipv4−ingress]
-; track and propagate on any bind operation
-;propagate = 0.0.0.0/0:0
+[user]
+;track=vagrant
+
+[group]
+;propagate=docker
 ```
 
 To check the loaded configuration use `journalctl -b | grep camconfd`

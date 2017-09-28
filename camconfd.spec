@@ -1,9 +1,9 @@
 Summary: CamFlow configuration service
 Name: camconfd
-Version: 0.3.3
+Version: 0.3.4
 Release: 1
 Group: audit/camflow
-License: GPLv3
+License: GPLv2
 Source: %{expand:%%(pwd)}
 BuildRoot: %{_topdir}/BUILD/%{name}-%{version}-%{release}
 
