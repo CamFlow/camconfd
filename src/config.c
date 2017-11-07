@@ -141,7 +141,7 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("group", "propagate")){
       ADD_TO_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
-    } else if(MATCH("group", "propagate")){
+    } else if(MATCH("group", "opaque")){
       ADD_TO_LIST(pconfig->opaque_group_filter, pconfig->nb_opaque_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("ipv4−ingress", "track")){
       ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
