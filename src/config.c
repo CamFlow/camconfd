@@ -10,30 +10,9 @@
 * published by the Free Software Foundation.
 *
 */
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include <syslog.h>
-
-#include "ini.h"
-#include "provenance.h"
-#include "provenanceutils.h"
-#include "provenancefilter.h"
 #include "camconf.h"
 
-#define CONFIG_PATH       "/etc/camflow.ini"
-#define APP_NAME          "camconfd"
-#define MAX_BRIDGE        32 // arbitrary
-#define MAX_TRUSTED       256 // arbitrary
-#define MAX_OPAQUE        256 // arbitrary
-#define MAX_TRACKED       256 // arbitrary
-#define MAX_PROPAGATE     256 // arbitrary
-#define MAX_FILTER        32 // filters are 32bits long for now
-#define MAX_IP_FILTER     32 // filters are 32bits long for now
-#define MAX_NAME          256
+
 
 struct configuration{
   uint32_t machine_id;
@@ -41,48 +20,25 @@ struct configuration{
   bool enabled;
   bool all;
   bool compress;
-  char bridge[MAX_BRIDGE][PATH_MAX];
-  int nb_bridge;
-  char trusted[MAX_BRIDGE][PATH_MAX];
-  int nb_trusted;
-  char opaque[MAX_OPAQUE][PATH_MAX];
-  int nb_opaque;
-  char tracked[MAX_TRACKED][PATH_MAX];
-  int nb_tracked;
-  char propagate[MAX_PROPAGATE][PATH_MAX];
-  int nb_propagate;
-  char node_filter[MAX_FILTER][PATH_MAX];
-  int nb_node_filter;
-  char relation_filter[MAX_FILTER][PATH_MAX];
-  int nb_relation_filter;
-  char propagate_node_filter[MAX_FILTER][PATH_MAX];
-  int nb_propagate_node_filter;
-  char propagate_relation_filter[MAX_FILTER][PATH_MAX];
-  int nb_propagate_relation_filter;
-  char track_user_filter[MAX_FILTER][MAX_NAME];
-  int nb_track_user_filter;
-  char propagate_user_filter[MAX_FILTER][MAX_NAME];
-  int nb_propagate_user_filter;
-  char opaque_user_filter[MAX_FILTER][MAX_NAME];
-  int nb_opaque_user_filter;
-  char track_group_filter[MAX_FILTER][MAX_NAME];
-  int nb_track_group_filter;
-  char propagate_group_filter[MAX_FILTER][MAX_NAME];
-  int nb_propagate_group_filter;
-  char opaque_group_filter[MAX_FILTER][MAX_NAME];
-  int nb_opaque_group_filter;
-  char track_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_track_ipv4_ingress_filter;
-  char propagate_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_propagate_ipv4_ingress_filter;
-  char record_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_record_ipv4_ingress_filter;
-  char track_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_track_ipv4_egress_filter;
-  char propagate_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_propagate_ipv4_egress_filter;
-  char record_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_record_ipv4_egress_filter;
+  declare_filter(opaque, PATH_MAX);
+  declare_filter(tracked, PATH_MAX);
+  declare_filter(propagate, PATH_MAX);
+  declare_filter(node_filter, MAX_NAME);
+  declare_filter(relation_filter, MAX_NAME);
+  declare_filter(propagate_node_filter, MAX_NAME);
+  declare_filter(propagate_relation_filter, MAX_NAME);
+  declare_filter(track_user_filter, MAX_NAME);
+  declare_filter(propagate_user_filter, MAX_NAME);
+  declare_filter(opaque_user_filter, MAX_NAME);
+  declare_filter(track_group_filter, MAX_NAME);
+  declare_filter(propagate_group_filter, MAX_NAME);
+  declare_filter(opaque_group_filter, MAX_NAME);
+  declare_filter(track_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(propagate_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(record_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(track_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(propagate_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(record_ipv4_egress_filter, MAX_IP_SIZE);
 };
 
 #define ADD_TO_LIST(list, nb, max, error_msg) if(nb+1 >= max){ \
@@ -91,9 +47,6 @@ struct configuration{
                                               } \
                                               strncpy(list[nb], value, PATH_MAX); \
                                               nb++;
-
-#define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
-#define TRUE(s) (strcmp("true", s) == 0)
 
 static int handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -118,11 +71,11 @@ static int handler(void* user, const char* section, const char* name,
         else
           pconfig->compress = false;
     } else if(MATCH("file", "opaque")){
-      ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_OPAQUE, "Too many opaque files.");
+      ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_FILTER, "Too many opaque files.");
     } else if(MATCH("file", "track")){
-      ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_TRACKED, "Too many tracked files.");
+      ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_FILTER, "Too many tracked files.");
     } else if(MATCH("file", "propagate")){
-      ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_PROPAGATE, "Too many propagate files.");
+      ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_FILTER, "Too many propagate files.");
     } else if(MATCH("provenance", "node_filter")){
       ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
     } else if(MATCH("provenance", "relation_filter")){
