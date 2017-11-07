@@ -1,10 +1,9 @@
 /*
 *
-* provenancelib.c
-*
 * Author: Thomas Pasquier <tfjmp2@cam.ac.uk>
 *
-* Copyright (C) 2016 University of Cambridge
+* Copyright (C) 2016-2017 University of Cambridge
+* Copyright (C) 2017 Harvard University
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2, as
@@ -23,6 +22,7 @@
 #include "provenance.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"
+#include "camconf.h"
 
 #define CONFIG_PATH       "/etc/camflow.ini"
 #define APP_NAME          "camconfd"

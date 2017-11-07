@@ -21,6 +21,7 @@
 
 ### v0.4.0
 ```
+- Internal refactoring.
 - Add support for opaque groups and users.
 ```
 
