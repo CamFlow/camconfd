@@ -2,7 +2,7 @@
 
 | Library version | Date       |
 | --------------- | ---------- |
-| 0.3.5           | N/A        |
+| 0.4.0           | N/A        |
 | 0.3.4           | 29/09/2017 |
 | 0.3.3           | 27/08/2017 |
 | 0.3.2           | 02/08/2017 |
@@ -19,9 +19,13 @@
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
 
-### v0.3.4
+### v0.4.0
 ```
 - Add support for opaque groups and users.
+```
+
+### v0.3.4
+```
 - Put file related option in their own category in the ini file.
 - Add node compression option.
 - Use libprovenance as a shared library.
