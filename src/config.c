@@ -39,6 +39,9 @@ struct configuration{
   declare_filter(track_ipv4_egress_filter, MAX_IP_SIZE);
   declare_filter(propagate_ipv4_egress_filter, MAX_IP_SIZE);
   declare_filter(record_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(track_secctx_filter, MAX_NAME);
+  declare_filter(propagate_secctx_filter, MAX_NAME);
+  declare_filter(opaque_secctx_filter, MAX_NAME);
 };
 
 static int handler(void* user, const char* section, const char* name,
@@ -101,6 +104,12 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(propagate_ipv4_egress_filter);
     } else if(MATCH("ipv4−egress", "record")){
       ADD_TO_LIST(record_ipv4_egress_filter);
+    } else if(MATCH("secctx", "track")){
+      ADD_TO_LIST(track_secctx_filter);
+    } else if(MATCH("secctx", "propagate")){
+      ADD_TO_LIST(propagate_secctx_filter);
+    } else if(MATCH("secctx", "opaque")){
+      ADD_TO_LIST(opaque_secctx_filter);
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -139,6 +148,9 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(track_ipv4_egress_filter);
     LOG_LIST(propagate_ipv4_egress_filter);
     LOG_LIST(record_ipv4_egress_filter);
+    LOG_LIST(track_secctx_filter);
+    LOG_LIST(propagate_secctx_filter);
+    LOG_LIST(opaque_secctx_filter);
   }
 }
 
@@ -254,6 +266,12 @@ void apply_config(struct configuration* pconfig){
     APPLY_LIST(propagate_ipv4_egress_filter, provenance_egress_ipv4_propagate(pconfig->propagate_ipv4_egress_filter[i]));
 
     APPLY_LIST(record_ipv4_egress_filter, provenance_egress_ipv4_record(pconfig->record_ipv4_egress_filter[i]));
+
+    APPLY_LIST(track_secctx_filter, provenance_secctx_track(pconfig->track_secctx_filter[i]));
+
+    APPLY_LIST(propagate_secctx_filter, provenance_secctx_propagate(pconfig->propagate_secctx_filter[i]));
+
+    APPLY_LIST(opaque_secctx_filter, provenance_secctx_opaque(pconfig->opaque_secctx_filter[i]));
 
     if(err = provenance_set_enable(pconfig->enabled)){
       syslog(LOG_ERR, "Error enabling provenance %d", err);

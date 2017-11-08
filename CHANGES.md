@@ -21,8 +21,9 @@
 
 ### v0.4.0
 ```
-- Internal refactoring.
+- Add secctx support via configuration to further align with CLI options.
 - Add support for opaque groups and users.
+- Internal refactoring.
 ```
 
 ### v0.3.4
