@@ -21,6 +21,7 @@
 
 ### v0.4.0
 ```
+- Default setting ignore envp.
 - Add secctx support via configuration to further align with CLI options.
 - Add support for opaque groups and users.
 - Internal refactoring.
