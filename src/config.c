@@ -19,7 +19,7 @@ struct configuration{
   uint32_t boot_id;
   bool enabled;
   bool all;
-  bool compress;
+  bool node_compress;
   declare_filter(opaque, PATH_MAX);
   declare_filter(tracked, PATH_MAX);
   declare_filter(propagate, PATH_MAX);
@@ -61,11 +61,11 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->all = true;
         else
           pconfig->all = false;
-    } else if(MATCH("provenance", "compress")) {
+    } else if(MATCH("compression", "node")) {
         if(TRUE(value))
-          pconfig->compress = true;
+          pconfig->node_compress = true;
         else
-          pconfig->compress = false;
+          pconfig->node_compress = false;
     } else if(MATCH("file", "opaque")){
       ADD_TO_LIST(opaque);
     } else if(MATCH("file", "track")){
@@ -128,7 +128,7 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
-    syslog(LOG_INFO, "Provenance compress=%u", pconfig->compress);
+    syslog(LOG_INFO, "Provenance node_compress=%u", pconfig->node_compress);
     LOG_LIST(opaque);
     LOG_LIST(tracked);
     LOG_LIST(propagate);
@@ -283,7 +283,7 @@ void apply_config(struct configuration* pconfig){
       exit(-1);
     }
 
-    if(err = provenance_should_compress(pconfig->compress)){
+    if(err = provenance_should_compress_node(pconfig->node_compress)){
       syslog(LOG_ERR, "Error with compress %d", err);
       exit(-1);
     }
