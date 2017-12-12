@@ -2,6 +2,7 @@
 
 | Library version | Date       |
 | --------------- | ---------- |
+| 0.4.0           | 12/12/2017 |
 | 0.3.4           | 29/09/2017 |
 | 0.3.3           | 27/08/2017 |
 | 0.3.2           | 02/08/2017 |
@@ -17,6 +18,15 @@
 | 0.1.2           | 19/09/2016 |
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
+
+### v0.4.0
+```
+- Create a compression subcategory.
+- Default setting ignore envp.
+- Add secctx support via configuration to further align with CLI options.
+- Add support for opaque groups and users.
+- Internal refactoring.
+```
 
 ### v0.3.4
 ```

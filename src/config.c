@@ -1,95 +1,49 @@
 /*
 *
-* provenancelib.c
-*
 * Author: Thomas Pasquier <tfjmp2@cam.ac.uk>
 *
-* Copyright (C) 2016 University of Cambridge
+* Copyright (C) 2016-2017 University of Cambridge
+* Copyright (C) 2017 Harvard University
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License version 2, as
 * published by the Free Software Foundation.
 *
 */
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include <syslog.h>
+#include "camconf.h"
 
-#include "ini.h"
-#include "provenance.h"
-#include "provenanceutils.h"
-#include "provenancefilter.h"
 
-#define CONFIG_PATH       "/etc/camflow.ini"
-#define APP_NAME          "camconfd"
-#define MAX_BRIDGE        32 // arbitrary
-#define MAX_TRUSTED       256 // arbitrary
-#define MAX_OPAQUE        256 // arbitrary
-#define MAX_TRACKED       256 // arbitrary
-#define MAX_PROPAGATE     256 // arbitrary
-#define MAX_FILTER        256 // filters are 32bits long for now
-#define MAX_IP_FILTER     256 // filters are 32bits long for now
-#define MAX_NAME          256
 
 struct configuration{
   uint32_t machine_id;
   uint32_t boot_id;
   bool enabled;
   bool all;
-  bool compress;
-  char bridge[MAX_BRIDGE][PATH_MAX];
-  int nb_bridge;
-  char trusted[MAX_BRIDGE][PATH_MAX];
-  int nb_trusted;
-  char opaque[MAX_OPAQUE][PATH_MAX];
-  int nb_opaque;
-  char tracked[MAX_TRACKED][PATH_MAX];
-  int nb_tracked;
-  char propagate[MAX_PROPAGATE][PATH_MAX];
-  int nb_propagate;
-  char node_filter[MAX_FILTER][PATH_MAX];
-  int nb_node_filter;
-  char relation_filter[MAX_FILTER][PATH_MAX];
-  int nb_relation_filter;
-  char propagate_node_filter[MAX_FILTER][PATH_MAX];
-  int nb_propagate_node_filter;
-  char propagate_relation_filter[MAX_FILTER][PATH_MAX];
-  int nb_propagate_relation_filter;
-  char track_user_filter[MAX_FILTER][MAX_NAME];
-  int nb_track_user_filter;
-  char propagate_user_filter[MAX_FILTER][MAX_NAME];
-  int nb_propagate_user_filter;
-  char track_group_filter[MAX_FILTER][MAX_NAME];
-  int nb_track_group_filter;
-  char propagate_group_filter[MAX_FILTER][MAX_NAME];
-  int nb_propagate_group_filter;
-  char track_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_track_ipv4_ingress_filter;
-  char propagate_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_propagate_ipv4_ingress_filter;
-  char record_ipv4_ingress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_record_ipv4_ingress_filter;
-  char track_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_track_ipv4_egress_filter;
-  char propagate_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_propagate_ipv4_egress_filter;
-  char record_ipv4_egress_filter[MAX_FILTER][MAX_IP_FILTER];
-  int nb_record_ipv4_egress_filter;
+  bool node_compress;
+  bool edge_compress;
+  declare_filter(opaque, PATH_MAX);
+  declare_filter(tracked, PATH_MAX);
+  declare_filter(propagate, PATH_MAX);
+  declare_filter(node_filter, MAX_NAME);
+  declare_filter(relation_filter, MAX_NAME);
+  declare_filter(propagate_node_filter, MAX_NAME);
+  declare_filter(propagate_relation_filter, MAX_NAME);
+  declare_filter(track_user_filter, MAX_NAME);
+  declare_filter(propagate_user_filter, MAX_NAME);
+  declare_filter(opaque_user_filter, MAX_NAME);
+  declare_filter(track_group_filter, MAX_NAME);
+  declare_filter(propagate_group_filter, MAX_NAME);
+  declare_filter(opaque_group_filter, MAX_NAME);
+  declare_filter(track_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(propagate_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(record_ipv4_ingress_filter, MAX_IP_SIZE);
+  declare_filter(track_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(propagate_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(record_ipv4_egress_filter, MAX_IP_SIZE);
+  declare_filter(track_secctx_filter, MAX_NAME);
+  declare_filter(propagate_secctx_filter, MAX_NAME);
+  declare_filter(opaque_secctx_filter, MAX_NAME);
 };
-
-#define ADD_TO_LIST(list, nb, max, error_msg) if(nb+1 >= max){ \
-                                                syslog(LOG_ERR, error_msg); \
-                                                exit(-1); \
-                                              } \
-                                              strncpy(list[nb], value, PATH_MAX); \
-                                              nb++;
-
-#define MATCH(s, n) (strcmp(section, s) == 0 && strcmp(name, n) == 0)
-#define TRUE(s) (strcmp("true", s) == 0)
 
 static int handler(void* user, const char* section, const char* name,
                    const char* value)
@@ -108,54 +62,65 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->all = true;
         else
           pconfig->all = false;
-    } else if(MATCH("provenance", "compress")) {
+    } else if(MATCH("compression", "node")) {
         if(TRUE(value))
-          pconfig->compress = true;
+          pconfig->node_compress = true;
         else
-          pconfig->compress = false;
+          pconfig->node_compress = false;
+    } else if(MATCH("compression", "edge")) {
+        if(TRUE(value))
+          pconfig->edge_compress = true;
+        else
+          pconfig->edge_compress = false;
     } else if(MATCH("file", "opaque")){
-      ADD_TO_LIST(pconfig->opaque, pconfig->nb_opaque, MAX_OPAQUE, "Too many opaque files.");
+      ADD_TO_LIST(opaque);
     } else if(MATCH("file", "track")){
-      ADD_TO_LIST(pconfig->tracked, pconfig->nb_tracked, MAX_TRACKED, "Too many tracked files.");
+      ADD_TO_LIST(tracked);
     } else if(MATCH("file", "propagate")){
-      ADD_TO_LIST(pconfig->propagate, pconfig->nb_propagate, MAX_PROPAGATE, "Too many propagate files.");
+      ADD_TO_LIST(propagate);
     } else if(MATCH("provenance", "node_filter")){
-      ADD_TO_LIST(pconfig->node_filter, pconfig->nb_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(node_filter);
     } else if(MATCH("provenance", "relation_filter")){
-      ADD_TO_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(relation_filter);
     } else if(MATCH("provenance", "propagate_node_filter")){
-      ADD_TO_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(propagate_node_filter);
     } else if(MATCH("provenance", "propagate_relation_filter")){
-      ADD_TO_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(propagate_relation_filter);
     } else if(MATCH("user", "track")){
-      ADD_TO_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(track_user_filter);
     } else if(MATCH("user", "propagate")){
-      ADD_TO_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(propagate_user_filter);
+    } else if(MATCH("user", "opaque")){
+      ADD_TO_LIST(opaque_user_filter);
     } else if(MATCH("group", "track")){
-      ADD_TO_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(track_group_filter);
     } else if(MATCH("group", "propagate")){
-      ADD_TO_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, MAX_FILTER, "Too many entries for filter (max is 32).");
+      ADD_TO_LIST(propagate_group_filter);
+    } else if(MATCH("group", "opaque")){
+      ADD_TO_LIST(opaque_group_filter);
     } else if(MATCH("ipv4−ingress", "track")){
-      ADD_TO_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 track ingress.");
+      ADD_TO_LIST(track_ipv4_ingress_filter);
     } else if(MATCH("ipv4−ingress", "propagate")){
-      ADD_TO_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 propagate ingress.");
+      ADD_TO_LIST(propagate_ipv4_ingress_filter);
     } else if(MATCH("ipv4−ingress", "record")){
-      ADD_TO_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, MAX_FILTER, "Too many filters ipv4 record ingress.");
+      ADD_TO_LIST(record_ipv4_ingress_filter);
     } else if(MATCH("ipv4−egress", "track")){
-      ADD_TO_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 track egress.");
+      ADD_TO_LIST(track_ipv4_egress_filter);
     } else if(MATCH("ipv4−egress", "propagate")){
-      ADD_TO_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 propagate egress.");
+      ADD_TO_LIST(propagate_ipv4_egress_filter);
     } else if(MATCH("ipv4−egress", "record")){
-      ADD_TO_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, MAX_FILTER, "Too many filters ipv4 record egress.");
+      ADD_TO_LIST(record_ipv4_egress_filter);
+    } else if(MATCH("secctx", "track")){
+      ADD_TO_LIST(track_secctx_filter);
+    } else if(MATCH("secctx", "propagate")){
+      ADD_TO_LIST(propagate_secctx_filter);
+    } else if(MATCH("secctx", "opaque")){
+      ADD_TO_LIST(opaque_secctx_filter);
     } else {
         return 0;  /* unknown section/name, error */
     }
     return 1;
 }
-
-#define LOG_LIST(list, nb, msg) for(i = 0; i < nb; i++){ \
-                                    syslog(LOG_INFO, "%s=%s", msg, list[i]); \
-                                  }
 
 void print_config(struct configuration* pconfig){
   int i;
@@ -169,28 +134,33 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
-    syslog(LOG_INFO, "Provenance compress=%u", pconfig->compress);
-    LOG_LIST(pconfig->opaque, pconfig->nb_opaque, "Provenance opaque=");
-    LOG_LIST(pconfig->tracked, pconfig->nb_tracked, "Provenance track=");
-    LOG_LIST(pconfig->propagate, pconfig->nb_propagate, "Provenance propagate=");
-    LOG_LIST(pconfig->node_filter, pconfig->nb_node_filter, "Provenance node_filter=");
-    LOG_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, "Provenance relation_filer=");
-    LOG_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, "Provenance propagate_node_filter=");
-    LOG_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, "Provenance propagate_relation_filer=");
-    LOG_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, "Provenance track_user_filer=");
-    LOG_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, "Provenance propagate_user_filer=");
-    LOG_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, "Provenance track_group_filer=");
-    LOG_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, "Provenance propagate_group_filer=");
-    LOG_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, "Provenance track_ipv4_ingress_filter=");
-    LOG_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, "Provenance propagate_ipv4_ingress_filter=");
-    LOG_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, "Provenance record_ipv4_ingress_filter=");
-    LOG_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, "Provenance track_ipv4_egress_filter=");
-    LOG_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, "Provenance propagate_ipv4_egress_filter=");
-    LOG_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, "Provenance record_ipv4_egress_filter=");
+    syslog(LOG_INFO, "Provenance node_compress=%u", pconfig->node_compress);
+    syslog(LOG_INFO, "Provenance edge_compress=%u", pconfig->edge_compress);
+    LOG_LIST(opaque);
+    LOG_LIST(tracked);
+    LOG_LIST(propagate);
+    LOG_LIST(node_filter);
+    LOG_LIST(relation_filter);
+    LOG_LIST(propagate_node_filter);
+    LOG_LIST(propagate_relation_filter);
+    LOG_LIST(track_user_filter);
+    LOG_LIST(propagate_user_filter);
+    LOG_LIST(opaque_user_filter);
+    LOG_LIST(track_group_filter);
+    LOG_LIST(propagate_group_filter);
+    LOG_LIST(opaque_group_filter);
+    LOG_LIST(track_ipv4_ingress_filter);
+    LOG_LIST(propagate_ipv4_ingress_filter);
+    LOG_LIST(record_ipv4_ingress_filter);
+    LOG_LIST(track_ipv4_egress_filter);
+    LOG_LIST(propagate_ipv4_egress_filter);
+    LOG_LIST(record_ipv4_egress_filter);
+    LOG_LIST(track_secctx_filter);
+    LOG_LIST(propagate_secctx_filter);
+    LOG_LIST(opaque_secctx_filter);
   }
 }
 
-#define CAMFLOW_MACHINE_ID_FILE "/etc/camflow-machine_id"
 uint32_t get_machine_id(void){
   FILE *fptr;
   uint32_t machine_id;
@@ -217,7 +187,6 @@ uint32_t get_machine_id(void){
   return machine_id;
 }
 
-#define CAMFLOW_BOOT_ID_FILE "/etc/camflow-boot_id"
 uint32_t get_boot_id(void){
   FILE *fptr;
   uint32_t boot_id=0;
@@ -245,14 +214,6 @@ uint32_t get_boot_id(void){
   return boot_id;
 }
 
-#define APPLY_LIST(list, nb, function, error_msg) for(i = 0; i < nb; i++){ \
-                                                    int err = function; \
-                                                    if(err < 0){ \
-                                                      syslog(LOG_ERR, "%s %s %d", error_msg, list[i], err); \
-                                                      exit(-1);\
-                                                    } \
-                                                  }
-
 void apply_config(struct configuration* pconfig){
   int err;
   int i;
@@ -275,39 +236,49 @@ void apply_config(struct configuration* pconfig){
       exit(-1);
     }
 
-    APPLY_LIST(pconfig->opaque, pconfig->nb_opaque, provenance_opaque_file(pconfig->opaque[i], true), "Error making file opaque");
+    APPLY_LIST(opaque, provenance_opaque_file(pconfig->opaque[i], true));
 
-    APPLY_LIST(pconfig->tracked, pconfig->nb_tracked, provenance_track_file(pconfig->tracked[i], true), "Error making file tracked");
+    APPLY_LIST(tracked, provenance_track_file(pconfig->tracked[i], true));
 
-    APPLY_LIST(pconfig->propagate, pconfig->nb_propagate, provenance_propagate_file(pconfig->propagate[i], true), "Error making file propagate");
+    APPLY_LIST(propagate, provenance_propagate_file(pconfig->propagate[i], true));
 
-    APPLY_LIST(pconfig->node_filter, pconfig->nb_node_filter, provenance_add_node_filter(node_str_to_id(pconfig->node_filter[i], 256)), "Error setting node filter");
+    APPLY_LIST(node_filter, provenance_add_node_filter(node_str_to_id(pconfig->node_filter[i], 256)));
 
-    APPLY_LIST(pconfig->relation_filter, pconfig->nb_relation_filter, provenance_add_relation_filter(relation_str_to_id(pconfig->relation_filter[i], 256)), "Error setting relation filter");
+    APPLY_LIST(relation_filter, provenance_add_relation_filter(relation_str_to_id(pconfig->relation_filter[i], 256)));
 
-    APPLY_LIST(pconfig->propagate_node_filter, pconfig->nb_propagate_node_filter, provenance_add_propagate_node_filter(node_str_to_id(pconfig->propagate_node_filter[i], 256)), "Error setting propagate node filter");
+    APPLY_LIST(propagate_node_filter, provenance_add_propagate_node_filter(node_str_to_id(pconfig->propagate_node_filter[i], 256)));
 
-    APPLY_LIST(pconfig->propagate_relation_filter, pconfig->nb_propagate_relation_filter, provenance_add_propagate_relation_filter(relation_str_to_id(pconfig->propagate_relation_filter[i], 256)), "Error setting propagate relation filter");
+    APPLY_LIST(propagate_relation_filter, provenance_add_propagate_relation_filter(relation_str_to_id(pconfig->propagate_relation_filter[i], 256)));
 
-    APPLY_LIST(pconfig->track_user_filter, pconfig->nb_track_user_filter, provenance_user_track(pconfig->track_user_filter[i]), "Error setting track user filter");
+    APPLY_LIST(track_user_filter, provenance_user_track(pconfig->track_user_filter[i]));
 
-    APPLY_LIST(pconfig->propagate_user_filter, pconfig->nb_propagate_user_filter, provenance_user_propagate(pconfig->propagate_user_filter[i]), "Error setting propagate user filter");
+    APPLY_LIST(propagate_user_filter, provenance_user_propagate(pconfig->propagate_user_filter[i]));
 
-    APPLY_LIST(pconfig->track_group_filter, pconfig->nb_track_group_filter, provenance_group_track(pconfig->track_group_filter[i]), "Error setting track group filter");
+    APPLY_LIST(opaque_user_filter, provenance_user_opaque(pconfig->opaque_user_filter[i]));
 
-    APPLY_LIST(pconfig->propagate_group_filter, pconfig->nb_propagate_group_filter, provenance_group_propagate(pconfig->propagate_group_filter[i]), "Error setting propagate group filter");
+    APPLY_LIST(track_group_filter, provenance_group_track(pconfig->track_group_filter[i]));
 
-    APPLY_LIST(pconfig->track_ipv4_ingress_filter, pconfig->nb_track_ipv4_ingress_filter, provenance_ingress_ipv4_track(pconfig->track_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 track filter");
+    APPLY_LIST(propagate_group_filter, provenance_group_propagate(pconfig->propagate_group_filter[i]));
 
-    APPLY_LIST(pconfig->propagate_ipv4_ingress_filter, pconfig->nb_propagate_ipv4_ingress_filter, provenance_ingress_ipv4_propagate(pconfig->propagate_ipv4_ingress_filter[i]), "Error setting propagate ingress ipv4 propagate filter");
+    APPLY_LIST(opaque_group_filter, provenance_group_opaque(pconfig->opaque_group_filter[i]));
 
-    APPLY_LIST(pconfig->record_ipv4_ingress_filter, pconfig->nb_record_ipv4_ingress_filter, provenance_ingress_ipv4_record(pconfig->record_ipv4_ingress_filter[i]), "Error setting record ingress ipv4 record filter");
+    APPLY_LIST(track_ipv4_ingress_filter, provenance_ingress_ipv4_track(pconfig->track_ipv4_ingress_filter[i]));
 
-    APPLY_LIST(pconfig->track_ipv4_egress_filter, pconfig->nb_track_ipv4_egress_filter, provenance_egress_ipv4_track(pconfig->track_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 track filter");
+    APPLY_LIST(propagate_ipv4_ingress_filter, provenance_ingress_ipv4_propagate(pconfig->propagate_ipv4_ingress_filter[i]));
 
-    APPLY_LIST(pconfig->propagate_ipv4_egress_filter, pconfig->nb_propagate_ipv4_egress_filter, provenance_egress_ipv4_propagate(pconfig->propagate_ipv4_egress_filter[i]), "Error setting propagate egress ipv4 propagate filter");
+    APPLY_LIST(record_ipv4_ingress_filter, provenance_ingress_ipv4_record(pconfig->record_ipv4_ingress_filter[i]));
 
-    APPLY_LIST(pconfig->record_ipv4_egress_filter, pconfig->nb_record_ipv4_egress_filter, provenance_egress_ipv4_record(pconfig->record_ipv4_egress_filter[i]), "Error setting record egress ipv4 record filter");
+    APPLY_LIST(track_ipv4_egress_filter, provenance_egress_ipv4_track(pconfig->track_ipv4_egress_filter[i]));
+
+    APPLY_LIST(propagate_ipv4_egress_filter, provenance_egress_ipv4_propagate(pconfig->propagate_ipv4_egress_filter[i]));
+
+    APPLY_LIST(record_ipv4_egress_filter, provenance_egress_ipv4_record(pconfig->record_ipv4_egress_filter[i]));
+
+    APPLY_LIST(track_secctx_filter, provenance_secctx_track(pconfig->track_secctx_filter[i]));
+
+    APPLY_LIST(propagate_secctx_filter, provenance_secctx_propagate(pconfig->propagate_secctx_filter[i]));
+
+    APPLY_LIST(opaque_secctx_filter, provenance_secctx_opaque(pconfig->opaque_secctx_filter[i]));
 
     if(err = provenance_set_enable(pconfig->enabled)){
       syslog(LOG_ERR, "Error enabling provenance %d", err);
@@ -319,8 +290,13 @@ void apply_config(struct configuration* pconfig){
       exit(-1);
     }
 
-    if(err = provenance_should_compress(pconfig->compress)){
-      syslog(LOG_ERR, "Error with compress %d", err);
+    if(err = provenance_should_compress_node(pconfig->node_compress)){
+      syslog(LOG_ERR, "Error with compress_node %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_should_compress_edge(pconfig->edge_compress)){
+      syslog(LOG_ERR, "Error with compress_edge %d", err);
       exit(-1);
     }
   } else {
