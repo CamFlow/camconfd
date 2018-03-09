@@ -26,9 +26,6 @@
 #include "provenanceutils.h"
 #include "provenancefilter.h"
 
-#define xstr(s) str(s)
-#define str(s) #s
-
 #define CONFIG_PATH       "/etc/camflow.ini"
 #define APP_NAME          "camconfd"
 #define MAX_PROPAGATE     256 // arbitrary
