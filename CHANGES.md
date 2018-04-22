@@ -22,6 +22,7 @@
 
 ### v0.4.1
 ```
+- Warning instead of error when not existing paths are used for file configuration.
 - Support node duplication on/off.
 ```
 

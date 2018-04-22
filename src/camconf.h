@@ -62,4 +62,11 @@
                                                     } \
                                                   }
 
+#define APPLY_LIST_WARNING(name, function) for(i = 0; i < pconfig->nb_ ## name; i++){ \
+                                                    int err = function; \
+                                                    if(err < 0){ \
+                                                      syslog(LOG_WARNING, "Warning setting" str(name) " = %s (%d).", pconfig->name[i], err); \
+                                                    } \
+                                                  }
+
 #endif

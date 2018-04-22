@@ -243,11 +243,11 @@ void apply_config(struct configuration* pconfig){
       exit(-1);
     }
 
-    APPLY_LIST(opaque, provenance_opaque_file(pconfig->opaque[i], true));
+    APPLY_LIST_WARNING(opaque, provenance_opaque_file(pconfig->opaque[i], true));
 
-    APPLY_LIST(tracked, provenance_track_file(pconfig->tracked[i], true));
+    APPLY_LIST_WARNING(tracked, provenance_track_file(pconfig->tracked[i], true));
 
-    APPLY_LIST(propagate, provenance_propagate_file(pconfig->propagate[i], true));
+    APPLY_LIST_WARNING(propagate, provenance_propagate_file(pconfig->propagate[i], true));
 
     APPLY_LIST(node_filter, provenance_add_node_filter(node_str_to_id(pconfig->node_filter[i], 256)));
 
