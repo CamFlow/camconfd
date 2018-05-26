@@ -27,14 +27,15 @@ node_filter=inode_unknown
 node_filter=char
 node_filter=envp
 ; propagate_node_filter=directory
-relation_filter=sh_read
-relation_filter=sh_write
+; relation_filter=sh_read
+; relation_filter=sh_write
 ; propagate_relation_filter=write
 
 [compression]
 ; enable node compression
 node=true
 edge=true
+duplicate=false
 
 [file]
 ;set opaque file

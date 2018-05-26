@@ -2,6 +2,7 @@
 
 | Library version | Date       |
 | --------------- | ---------- |
+| 0.4.1           | 26/05/2018 |
 | 0.4.0           | 12/12/2017 |
 | 0.3.4           | 29/09/2017 |
 | 0.3.3           | 27/08/2017 |
@@ -18,6 +19,12 @@
 | 0.1.2           | 19/09/2016 |
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
+
+### v0.4.1
+```
+- Warning instead of error when not existing paths are used for file configuration.
+- Support node duplication on/off.
+```
 
 ### v0.4.0
 ```

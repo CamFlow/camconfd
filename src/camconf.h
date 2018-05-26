@@ -26,9 +26,6 @@
 #include "provenanceutils.h"
 #include "provenancefilter.h"
 
-#define xstr(s) str(s)
-#define str(s) #s
-
 #define CONFIG_PATH       "/etc/camflow.ini"
 #define APP_NAME          "camconfd"
 #define MAX_PROPAGATE     256 // arbitrary
@@ -62,6 +59,13 @@
                                                     if(err < 0){ \
                                                       syslog(LOG_ERR, "Error setting" str(name) " = %s (%d).", pconfig->name[i], err); \
                                                       exit(-1);\
+                                                    } \
+                                                  }
+
+#define APPLY_LIST_WARNING(name, function) for(i = 0; i < pconfig->nb_ ## name; i++){ \
+                                                    int err = function; \
+                                                    if(err < 0){ \
+                                                      syslog(LOG_WARNING, "Warning setting" str(name) " = %s (%d).", pconfig->name[i], err); \
                                                     } \
                                                   }
 
