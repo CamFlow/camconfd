@@ -44,7 +44,7 @@
 
 
 #define ADD_TO_LIST(name) if(pconfig->nb_ ## name +1 >= MAX_FILTER){ \
-                            syslog(LOG_ERR, "Too many entries for" str(name) "(max is " xstr(MAX_FILTER) ")."); \
+                            syslog(LOG_ERR, "Too many entries for " str(name) " (max is " xstr(MAX_FILTER) ")."); \
                             exit(-1); \
                           } \
                           strncpy(pconfig->name[ pconfig->nb_ ## name ], value, PATH_MAX); \
@@ -57,7 +57,7 @@
 #define APPLY_LIST(name, function) for(i = 0; i < pconfig->nb_ ## name; i++){ \
                                                     int err = function; \
                                                     if(err < 0){ \
-                                                      syslog(LOG_ERR, "Error setting" str(name) " = %s (%d).", pconfig->name[i], err); \
+                                                      syslog(LOG_ERR, "Error setting " str(name) " = %s (%d).", pconfig->name[i], err); \
                                                       exit(-1);\
                                                     } \
                                                   }
@@ -65,7 +65,7 @@
 #define APPLY_LIST_WARNING(name, function) for(i = 0; i < pconfig->nb_ ## name; i++){ \
                                                     int err = function; \
                                                     if(err < 0){ \
-                                                      syslog(LOG_WARNING, "Warning setting" str(name) " = %s (%d).", pconfig->name[i], err); \
+                                                      syslog(LOG_WARNING, "Warning setting " str(name) " = %s (%d).", pconfig->name[i], err); \
                                                     } \
                                                   }
 
