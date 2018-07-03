@@ -1,4 +1,4 @@
-# camflow-config
+# CamFlow Configuration Service [![Master Build Status](https://api.travis-ci.org/CamFlow/camconfd.svg)](https://travis-ci.org/CamFlow/camflow-config/branches) 
 
 ## Build Status
 
