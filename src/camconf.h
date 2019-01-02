@@ -2,8 +2,8 @@
 *
 * Author: Thomas Pasquier <thomas.pasquier@bristol.ac.uk>
 *
-* Copyright (C) 2016-2017 University of Cambridge
-* Copyright (C) 2017 Harvard University
+* Copyright (C) 2015-2016 University of Cambridge
+* Copyright (C) 2016-2017 Harvard University
 * Copyright (C) 2017-2018 University of Cambridge
 * Copyright (C) 2018-2019 University of Bristol
 *
