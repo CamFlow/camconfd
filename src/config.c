@@ -198,7 +198,7 @@ uint32_t get_machine_id(void){
 
 uint32_t get_boot_id(void){
   FILE *fptr;
-  uint32_t boot_id=0;
+  uint32_t boot_id=1;
   int rc;
 
   fptr = fopen(CAMFLOW_BOOT_ID_FILE, "rb+");
