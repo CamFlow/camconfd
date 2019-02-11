@@ -184,7 +184,9 @@ uint32_t get_machine_id(void){
         exit(-1);
       }
       srand(time(NULL)+gethostid());
-      machine_id = rand();
+      do {
+        machine_id = rand();
+      }while(machine_id==0);
       fwrite(&machine_id, sizeof(uint32_t), 1, fptr);
   }else{
     rc = fread(&machine_id, sizeof(uint32_t), 1, fptr);
