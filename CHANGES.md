@@ -24,6 +24,11 @@
 | 0.1.1           | 02/09/2016 |
 | 0.1.0           | 26/05/2016 |
 
+### v0.4.5
+```
+- Release for fedora 29.
+```
+
 ### v0.4.4
 ```
 - Ensure machine ID can never be set to zero.
