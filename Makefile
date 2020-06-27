@@ -7,10 +7,7 @@ clean:
 	cd ./src && $(MAKE) clean
 
 prepare:
-	mkdir -p ~/build
-	test -d ~/build/inih || (cd ~/build && git clone https://github.com/benhoyt/inih.git)
-	cd ~/build/inih && git checkout tags/r47
-	cd ~/build/inih/extra && $(MAKE) -f Makefile.static default
+	echo 'Nothing to do.'
 
 install:
 	cd ./src && sudo $(MAKE) install
