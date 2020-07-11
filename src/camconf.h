@@ -22,8 +22,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <syslog.h>
+#include <ini.h>
 
-#include "ini.h"
 #include "provenance.h"
 #include "provenanceutils.h"
 #include "provenancefilter.h"

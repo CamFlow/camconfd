@@ -1,4 +1,4 @@
-version=0.4.6
+version=0.5.0
 
 all:
 	cd ./src && $(MAKE) all
@@ -7,8 +7,7 @@ clean:
 	cd ./src && $(MAKE) clean
 
 prepare:
-	cd ./inih && $(MAKE) prepare
-	cd ./inih && $(MAKE) all
+	echo 'Nothing to do.'
 
 install:
 	cd ./src && sudo $(MAKE) install
@@ -29,7 +28,7 @@ deb:
 	cp *.deb ./output
 
 publish_rpm:
-	cd ./output && package_cloud push camflow/provenance/fedora/31 camconfd-$(version)-1.x86_64.rpm
+	cd ./output && package_cloud push camflow/provenance/fedora/32 camconfd-$(version)-1.x86_64.rpm
 
 publish_deb:
 	cd ./output && package_cloud push camflow/provenance/ubuntu/bionic camconfd_$(version)-2_amd64.deb

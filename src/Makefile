@@ -1,7 +1,7 @@
-INCLUDES = -I../inih
+INCLUDES = -I~/build/inih
 CCFLAGS = -g -O2 -fpic
 CCC = gcc
-LIB = -lprovenance ../inih/inih.a -lpthread -lz
+LIB = -lprovenance -linih -lpthread -lz
 
 .SUFFIXES: .c
 
