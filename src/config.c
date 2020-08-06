@@ -14,8 +14,6 @@
 */
 #include "camconf.h"
 
-
-
 struct configuration{
   uint32_t machine_id;
   uint32_t boot_id;
