@@ -21,6 +21,7 @@ struct configuration{
   bool all;
   bool node_compress;
   bool edge_compress;
+  bool duplicate;
   declare_filter(opaque, PATH_MAX);
   declare_filter(tracked, PATH_MAX);
   declare_filter(propagate, PATH_MAX);
@@ -72,6 +73,11 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->edge_compress = true;
         else
           pconfig->edge_compress = false;
+    } else if(MATCH("compression", "duplicate")) {
+        if(TRUE(value))
+          pconfig->duplicate = true;
+        else
+          pconfig->duplicate = false;
     } else if(MATCH("file", "opaque")){
       ADD_TO_LIST(opaque);
     } else if(MATCH("file", "track")){
@@ -136,6 +142,7 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
     syslog(LOG_INFO, "Provenance node_compress=%u", pconfig->node_compress);
     syslog(LOG_INFO, "Provenance edge_compress=%u", pconfig->edge_compress);
+    syslog(LOG_INFO, "Provenance duplicate=%u", pconfig->duplicate);
     LOG_LIST(opaque);
     LOG_LIST(tracked);
     LOG_LIST(propagate);
@@ -299,6 +306,11 @@ void apply_config(struct configuration* pconfig){
 
     if(err = provenance_should_compress_edge(pconfig->edge_compress)){
       syslog(LOG_ERR, "Error with compress_edge %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_should_duplicate(pconfig->duplicate)){
+      syslog(LOG_ERR, "Error with duplicate %d", err);
       exit(-1);
     }
   } else {
