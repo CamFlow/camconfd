@@ -1,4 +1,4 @@
-version=0.5.0
+version=0.5.1
 
 all:
 	cd ./src && $(MAKE) all
@@ -28,7 +28,7 @@ deb:
 	cp *.deb ./output
 
 publish_rpm:
-	cd ./output && package_cloud push camflow/provenance/fedora/32 camconfd-$(version)-1.x86_64.rpm
+	cd ./output && package_cloud push camflow/provenance/fedora/33 camconfd-$(version)-1.x86_64.rpm
 
 publish_deb:
 	cd ./output && package_cloud push camflow/provenance/ubuntu/bionic camconfd_$(version)-2_amd64.deb
