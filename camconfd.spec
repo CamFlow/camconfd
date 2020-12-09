@@ -6,6 +6,7 @@ Group: audit/camflow
 License: GPLv2
 Source: %{expand:%%(pwd)}
 BuildRoot: %{_topdir}/BUILD/%{name}-%{version}-%{release}
+AutoReqProv: no
 
 %description
 %{summary}
