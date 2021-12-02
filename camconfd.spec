@@ -1,6 +1,6 @@
 Summary: CamFlow configuration service
 Name: camconfd
-Version: 0.5.2
+Version: 0.5.3
 Release: 1
 Group: audit/camflow
 License: GPLv2
