@@ -31,6 +31,7 @@
 
 ### v0.5.3
 ```
+- Add options to set relay buffer size.
 ```
 
 ### v0.5.2

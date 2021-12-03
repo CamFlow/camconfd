@@ -17,6 +17,8 @@
 struct configuration{
   uint32_t machine_id;
   uint32_t boot_id;
+  uint32_t buff_exp;
+  uint32_t subuf_nb;
   bool enabled;
   bool all;
   bool node_compress;
@@ -122,6 +124,10 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(propagate_secctx_filter);
     } else if(MATCH("secctx", "opaque")){
       ADD_TO_LIST(opaque_secctx_filter);
+    }  else if(MATCH("relay", "buff_exp")) {
+        pconfig->buff_exp = atoi(value);
+    }  else if(MATCH("relay", "subuf_nb")) {
+        pconfig->subuf_nb = atoi(value);
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -165,6 +171,8 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(track_secctx_filter);
     LOG_LIST(propagate_secctx_filter);
     LOG_LIST(opaque_secctx_filter);
+    syslog(LOG_INFO, "Provenance relay buff_exp=%u", pconfig->buff_exp);
+    syslog(LOG_INFO, "Provenance relay subuf_nb=%u", pconfig->subuf_nb);
   }
 }
 
@@ -235,13 +243,14 @@ void apply_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance module presence detected.");
     if(pconfig->machine_id==0)
       pconfig->machine_id=get_machine_id();
-    if(err = provenance_set_machine_id(pconfig->machine_id)){
-      syslog(LOG_ERR, "Error setting machine ID %d", err);
-      exit(-1);
-    }
     pconfig->boot_id=get_boot_id();
-    if(err = provenance_set_boot_id(pconfig->boot_id)){
-      syslog(LOG_ERR, "Error setting boot ID %d", err);
+    err = provenance_relay_start(pconfig->boot_id,
+                            pconfig->machine_id,
+                            pconfig->buff_exp,
+                            pconfig->subuf_nb);
+
+    if(err<0){
+      syslog(LOG_ERR, "Error starting the relay %d", err);
       exit(-1);
     }
 
