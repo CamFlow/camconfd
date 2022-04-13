@@ -22,6 +22,7 @@ struct configuration{
   uint32_t subuf_nb;
   bool enabled;
   bool all;
+  bool version;
   bool node_compress;
   bool edge_compress;
   bool duplicate;
@@ -66,6 +67,11 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->all = true;
         else
           pconfig->all = false;
+    } else if(MATCH("compression", "version")) {
+        if(TRUE(value))
+          pconfig->version = true;
+        else
+          pconfig->version = false;
     } else if(MATCH("compression", "node")) {
         if(TRUE(value))
           pconfig->node_compress = true;
@@ -147,6 +153,7 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
+    syslog(LOG_INFO, "Provenance version=%u", pconfig->version);
     syslog(LOG_INFO, "Provenance node_compress=%u", pconfig->node_compress);
     syslog(LOG_INFO, "Provenance edge_compress=%u", pconfig->edge_compress);
     syslog(LOG_INFO, "Provenance duplicate=%u", pconfig->duplicate);
@@ -306,6 +313,11 @@ void apply_config(struct configuration* pconfig){
 
     if(err = provenance_set_all(pconfig->all)){
       syslog(LOG_ERR, "Error with all provenance %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_should_version(pconfig->version)){
+      syslog(LOG_ERR, "Error with should_version %d", err);
       exit(-1);
     }
 
