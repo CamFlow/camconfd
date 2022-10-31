@@ -1,24 +1,28 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
-*
-* Author: Thomas Pasquier <thomas.pasquier@bristol.ac.uk>
-*
-* Copyright (C) 2015-2016 University of Cambridge
-* Copyright (C) 2016-2017 Harvard University
-* Copyright (C) 2017-2018 University of Cambridge
-* Copyright (C) 2018-2019 University of Bristol
-*
-* This program is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 2, as
-* published by the Free Software Foundation.
-*
-*/
+ * Copyright (C) 2015-2016 University of Cambridge,
+ * Copyright (C) 2016-2017 Harvard University,
+ * Copyright (C) 2017-2018 University of Cambridge,
+ * Copyright (C) 2018-2021 University of Bristol,
+ * Copyright (C) 2021-2022 University of British Columbia
+ *
+ * Author: Thomas Pasquier <tfjmp@cs.ubc.ca>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2, as
+ * published by the Free Software Foundation; either version 2 of the License,
+ * or (at your option) any later version.
+ */
 #include "camconf.h"
 
 struct configuration{
   uint32_t machine_id;
   uint32_t boot_id;
+  uint32_t buff_exp;
+  uint32_t subuf_nb;
   bool enabled;
   bool all;
+  bool version;
   bool node_compress;
   bool edge_compress;
   bool duplicate;
@@ -63,6 +67,11 @@ static int handler(void* user, const char* section, const char* name,
           pconfig->all = true;
         else
           pconfig->all = false;
+    } else if(MATCH("compression", "version")) {
+        if(TRUE(value))
+          pconfig->version = true;
+        else
+          pconfig->version = false;
     } else if(MATCH("compression", "node")) {
         if(TRUE(value))
           pconfig->node_compress = true;
@@ -122,6 +131,10 @@ static int handler(void* user, const char* section, const char* name,
       ADD_TO_LIST(propagate_secctx_filter);
     } else if(MATCH("secctx", "opaque")){
       ADD_TO_LIST(opaque_secctx_filter);
+    }  else if(MATCH("relay", "buff_exp")) {
+        pconfig->buff_exp = atoi(value);
+    }  else if(MATCH("relay", "subuf_nb")) {
+        pconfig->subuf_nb = atoi(value);
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -140,6 +153,7 @@ void print_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance boot_id=%u", pconfig->boot_id);
     syslog(LOG_INFO, "Provenance enabled=%u", pconfig->enabled);
     syslog(LOG_INFO, "Provenance all=%u", pconfig->all);
+    syslog(LOG_INFO, "Provenance version=%u", pconfig->version);
     syslog(LOG_INFO, "Provenance node_compress=%u", pconfig->node_compress);
     syslog(LOG_INFO, "Provenance edge_compress=%u", pconfig->edge_compress);
     syslog(LOG_INFO, "Provenance duplicate=%u", pconfig->duplicate);
@@ -165,6 +179,8 @@ void print_config(struct configuration* pconfig){
     LOG_LIST(track_secctx_filter);
     LOG_LIST(propagate_secctx_filter);
     LOG_LIST(opaque_secctx_filter);
+    syslog(LOG_INFO, "Provenance relay buff_exp=%u", pconfig->buff_exp);
+    syslog(LOG_INFO, "Provenance relay subuf_nb=%u", pconfig->subuf_nb);
   }
 }
 
@@ -235,13 +251,14 @@ void apply_config(struct configuration* pconfig){
     syslog(LOG_INFO, "Provenance module presence detected.");
     if(pconfig->machine_id==0)
       pconfig->machine_id=get_machine_id();
-    if(err = provenance_set_machine_id(pconfig->machine_id)){
-      syslog(LOG_ERR, "Error setting machine ID %d", err);
-      exit(-1);
-    }
     pconfig->boot_id=get_boot_id();
-    if(err = provenance_set_boot_id(pconfig->boot_id)){
-      syslog(LOG_ERR, "Error setting boot ID %d", err);
+    err = provenance_relay_start(pconfig->boot_id,
+                            pconfig->machine_id,
+                            pconfig->buff_exp,
+                            pconfig->subuf_nb);
+
+    if(err<0){
+      syslog(LOG_ERR, "Error starting the relay %d", err);
       exit(-1);
     }
 
@@ -296,6 +313,11 @@ void apply_config(struct configuration* pconfig){
 
     if(err = provenance_set_all(pconfig->all)){
       syslog(LOG_ERR, "Error with all provenance %d", err);
+      exit(-1);
+    }
+
+    if(err = provenance_should_version(pconfig->version)){
+      syslog(LOG_ERR, "Error with should_version %d", err);
       exit(-1);
     }
 
